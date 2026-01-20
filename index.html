@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Tasa de Obra</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Tasa de Obra</h1>
+            <button class="admin-btn" onclick="openAdminModal()">⚙️ Admin</button>
+        </div>
+
+        <div class="content">
+            <!-- Panel Principal de Calculadora -->
+            <div class="card">
+                <h2 style="margin-bottom: 25px; color: #333;">Calculadora</h2>
+                
+                <div id="alertBox" class="alert"></div>
+
+                <!-- Checkboxes iniciales -->
+                <div style="background: #f0f0f0; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+                    <h3 style="margin-bottom: 15px; color: #333; font-size: 1.1em;">Tipo de Obra</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-weight: 600;">
+                            <input type="checkbox" id="aConstruir" onchange="handleCheckboxChange()">
+                            <span style="margin-left: 8px;">A Construir</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; font-weight: 600;">
+                            <input type="checkbox" id="aEmpadronar" onchange="handleCheckboxChange()">
+                            <span style="margin-left: 8px;">A Empadronar</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Parámetros dinámicos -->
+                <div id="parametersContainer"></div>
+
+                <!-- Campos adicionales (módulos y m2) -->
+                <div id="additionalFieldsContainer" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <h3 style="margin-bottom: 20px; color: #333; font-size: 1.1em;">Cantidades</h3>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>Metros Cuadrados (m²)</label>
+                            <input type="number" id="m2Input" min="0" step="0.01" value="0" onchange="calculateResult()" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desglose del cálculo -->
+                <div id="calcDetailsContainer" style="display: none; background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.95em; color: #333;">
+                </div>
+
+                <!-- Resultado -->
+                <div class="result-section">
+                    <div class="result-label">Monto Total</div>
+                    <div class="result-value">
+                        <span class="currency">$</span><span id="resultValue">0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Administración -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+            <span class="close-modal" onclick="closeAdminModal()">&times;</span>
+            <div class="modal-title">Panel de Administración</div>
+
+            <div id="adminAlert" class="alert"></div>
+
+            <!-- Verificación de contraseña -->
+            <div id="passwordSection">
+                <div class="form-group">
+                    <label>Contraseña de Administrador</label>
+                    <input type="password" id="adminPassword" placeholder="Ingrese la contraseña">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="verifyAdminPassword()">Acceder</button>
+                    <button class="btn-secondary" onclick="closeAdminModal()">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- Panel de administración (oculto hasta verificar contraseña) -->
+            <div id="adminPanel" style="display: none;">
+                <!-- Tabs para navegación -->
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0;">
+                    <button class="tab-btn active" onclick="showAdminTab('categories')">Categorías</button>
+                    <button class="tab-btn" onclick="showAdminTab('subcategories')">Subcategorías</button>
+                    <button class="tab-btn" onclick="showAdminTab('other')">Otros</button>
+                </div>
+
+                <!-- Tab de Categorías -->
+                <div id="categoriesTab" class="admin-tab">
+                    <h3 style="margin-bottom: 15px; color: #333;">Gestionar Categorías</h3>
+                    <div id="categoriesContainer" style="margin-bottom: 20px;"></div>
+                    
+                    <h4 style="margin-bottom: 10px; color: #333;">Agregar Nueva Categoría</h4>
+                    <div class="form-group">
+                        <label>Nombre de la Categoría</label>
+                        <input type="text" id="newCategoryName" placeholder="ej: Viviendas, Industrias, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label>Coeficiente (multiplicador)</label>
+                        <input type="number" id="newCategoryCoef" placeholder="ej: 1.5" step="0.01" value="1">
+                    </div>
+                    <button class="btn-primary" onclick="addCategory()">Agregar Categoría</button>
+                </div>
+
+                <!-- Tab de Subcategorías -->
+                <div id="subcategoriesTab" class="admin-tab" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #333;">Gestionar Subcategorías</h3>
+                    
+                    <div class="form-group">
+                        <label>Seleccionar Categoría Principal</label>
+                        <select id="parentCategorySelect" onchange="loadSubcategories()">
+                            <option value="">-- Elegir categoría --</option>
+                        </select>
+                    </div>
+
+                    <div id="subcategoriesContainer" style="margin-bottom: 20px;"></div>
+
+                    <h4 style="margin-bottom: 10px; color: #333;">Agregar Nueva Subcategoría</h4>
+                    <div class="form-group">
+                        <label>Nombre de la Subcategoría</label>
+                        <input type="text" id="newSubcategoryName" placeholder="ej: De Interes Social, Unifamiliares, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label>Coeficiente (multiplicador)</label>
+                        <input type="number" id="newSubcategoryCoef" placeholder="ej: 1.2" step="0.01" value="1">
+                    </div>
+                    <button class="btn-primary" onclick="addSubcategory()">Agregar Subcategoría</button>
+                </div>
+
+                <!-- Tab de Otros -->
+                <div id="otherTab" class="admin-tab" style="display: none;">
+                    <h3 style="margin-bottom: 20px; color: #333;">Configuración Global</h3>
+                    
+                    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                        <h4 style="margin-bottom: 15px; color: #333;">Parámetros Globales de Cálculo</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div class="form-group">
+                                <label>Arancel ($/m²)</label>
+                                <input type="number" id="globalArancel" placeholder="ej: 500" step="0.01" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Alícuota (%)</label>
+                                <input type="number" id="globalAlicuota" placeholder="ej: 10" step="0.01" value="0" min="0">
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="updateGlobalValues()">Guardar Valores</button>
+                    </div>
+
+                    <hr style="margin: 30px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+                    <div class="btn-group">
+                        <button class="btn-secondary" onclick="changeAdminPassword()">Cambiar Contraseña</button>
+                        <button class="btn-secondary" onclick="logoutAdmin()">Cerrar Sesión</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .tab-btn {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 5px 5px 0 0;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .tab-btn.active:hover {
+            background: #667eea;
+        }
+
+        .admin-tab {
+            padding: 20px 0;
+        }
+
+        .category-item,
+        .subcategory-item {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .category-info,
+        .subcategory-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .category-info strong,
+        .subcategory-info strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .category-coef,
+        .subcategory-coef {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .edit-coef-btn {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.85em;
+        }
+
+        .edit-coef-btn:hover {
+            background: #5568d3;
+        }
+    </style>
+
+    <script>
+        // Default password
+        const DEFAULT_PASSWORD = 'admin123';
+        let adminLoggedIn = false;
+
+        // Inicializar datos
+        function initializeData() {
+            if (!localStorage.getItem('tasa_obra_data')) {
+                const defaultData = {
+                    arancel: 500,
+                    alicuota: 10,
+                    categories: [
+                        {
+                            id: 'cat1',
+                            name: 'Viviendas',
+                            coefficient: 1,
+                            subcategories: [
+                                { id: 'sub1', name: 'De Interes Social', coefficient: 1 },
+                                { id: 'sub2', name: 'Unifamiliares', coefficient: 1.2 }
+                            ]
+                        },
+                        {
+                            id: 'cat2',
+                            name: 'Industrias',
+                            coefficient: 1.5,
+                            subcategories: [
+                                { id: 'sub3', name: 'Liviana', coefficient: 1 },
+                                { id: 'sub4', name: 'Pesada', coefficient: 1.5 }
+                            ]
+                        },
+                        {
+                            id: 'cat3',
+                            name: 'Almacenajes',
+                            coefficient: 0.8,
+                            subcategories: [
+                                { id: 'sub5', name: 'Básico', coefficient: 0.8 },
+                                { id: 'sub6', name: 'Refrigerado', coefficient: 1.3 }
+                            ]
+                        }
+                    ],
+                    checkboxes: {
+                        aConstruir: false,
+                        aEmpadronar: false
+                    }
+                };
+                localStorage.setItem('tasa_obra_data', JSON.stringify(defaultData));
+            }
+
+
+            if (!localStorage.getItem('tasa_obra_password')) {
+                localStorage.setItem('tasa_obra_password', DEFAULT_PASSWORD);
+            }
+        }
+
+        // Obtener datos
+        function getData() {
+            return JSON.parse(localStorage.getItem('tasa_obra_data')) || {};
+        }
+
+        // Guardar datos
+        function saveData(data) {
+            localStorage.setItem('tasa_obra_data', JSON.stringify(data));
+        }
+
+        // Obtener contraseña almacenada
+        function getStoredPassword() {
+            return localStorage.getItem('tasa_obra_password') || DEFAULT_PASSWORD;
+        }
+
+        // Manejar cambio de checkboxes
+        function handleCheckboxChange() {
+            const data = getData();
+            data.checkboxes.aConstruir = document.getElementById('aConstruir').checked;
+            data.checkboxes.aEmpadronar = document.getElementById('aEmpadronar').checked;
+            saveData(data);
+            renderCalculator();
+            calculateResult();
+        }
+
+        // Renderizar calculadora
+        function renderCalculator() {
+            const data = getData();
+            const container = document.getElementById('parametersContainer');
+            container.innerHTML = '';
+
+            // Cargar checkboxes
+            document.getElementById('aConstruir').checked = data.checkboxes.aConstruir;
+            document.getElementById('aEmpadronar').checked = data.checkboxes.aEmpadronar;
+
+            // Si no hay ningún checkbox seleccionado, mostrar mensaje
+            if (!data.checkboxes.aConstruir && !data.checkboxes.aEmpadronar) {
+                container.innerHTML = '<div style="padding: 20px; background: #fff3cd; border-radius: 8px; color: #856404;">Por favor, selecciona al menos una opción de tipo de obra.</div>';
+                return;
+            }
+
+            // Mostrar selector de categoría
+            const catDiv = document.createElement('div');
+            catDiv.className = 'form-group';
+            catDiv.innerHTML = `
+                <label>Tipo de Obra</label>
+                <select id="categorySelect" onchange="onCategoryChange()">
+                    <option value="">-- Elegir opción --</option>
+                    ${data.categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('')}
+                </select>
+            `;
+            container.appendChild(catDiv);
+
+            // Mostrar selector de subcategoría (inicialmente oculto)
+            const subDiv = document.createElement('div');
+            subDiv.id = 'subcategoryDiv';
+            subDiv.className = 'form-group';
+            subDiv.style.display = 'none';
+            subDiv.innerHTML = `
+                <label>Subtipo de Obra</label>
+                <select id="subcategorySelect" onchange="onSubcategoryChange()">
+                    <option value="">-- Elegir opción --</option>
+                </select>
+            `;
+            container.appendChild(subDiv);
+        }
+
+        // Cambio de categoría
+        function onCategoryChange() {
+            const data = getData();
+            const categoryId = document.getElementById('categorySelect').value;
+            const category = data.categories.find(c => c.id === categoryId);
+
+            if (category) {
+                const subDiv = document.getElementById('subcategoryDiv');
+                const subSelect = document.getElementById('subcategorySelect');
+                
+                subSelect.innerHTML = '<option value="">-- Elegir opción --</option>' +
+                    category.subcategories.map(sub => `<option value="${sub.id}">${sub.name}</option>`).join('');
+                
+                subDiv.style.display = 'block';
+                document.getElementById('additionalFieldsContainer').style.display = 'none';
+                document.getElementById('calcDetailsContainer').style.display = 'none';
+            } else {
+                document.getElementById('subcategoryDiv').style.display = 'none';
+                document.getElementById('additionalFieldsContainer').style.display = 'none';
+                document.getElementById('calcDetailsContainer').style.display = 'none';
+            }
+
+            calculateResult();
+        }
+
+        // Cuando cambia la subcategoría
+        function onSubcategoryChange() {
+            const categoryId = document.getElementById('categorySelect')?.value;
+            if (categoryId) {
+                document.getElementById('additionalFieldsContainer').style.display = 'block';
+                document.getElementById('calcDetailsContainer').style.display = 'block';
+            }
+            calculateResult();
+        }
+
+        // Calcular resultado
+        function calculateResult() {
+            const data = getData();
+            let totalAmount = 0;
+            let detailedCalc = '';
+            
+            let tipoObraCoef = 1;
+            let arancel = data.arancel || 0;
+            let alicuota = data.alicuota || 0;
+
+            // Obtener tipo de obra (coeficiente de subcategoría)
+            const categoryId = document.getElementById('categorySelect')?.value;
+            if (categoryId) {
+                const category = data.categories.find(c => c.id === categoryId);
+                if (category) {
+                    const subcategoryId = document.getElementById('subcategorySelect')?.value;
+                    if (subcategoryId) {
+                        const subcategory = category.subcategories.find(s => s.id === subcategoryId);
+                        if (subcategory) {
+                            tipoObraCoef = subcategory.coefficient;
+
+                            // Obtener metros cuadrados
+                            const m2 = parseFloat(document.getElementById('m2Input')?.value) || 0;
+
+                            // Fórmula: Tipo de obra × ARANCEL × metros cuadrados × ALICUOTA
+                            const baseCalc = tipoObraCoef * arancel * m2;
+                            const alicuotaDecimal = alicuota / 100;
+                            totalAmount = baseCalc * (1 + alicuotaDecimal);
+
+                            // Crear detalles del cálculo
+                            detailedCalc = `
+                                <strong>Desglose del Cálculo:</strong><br>
+                                Tipo de Obra: ${tipoObraCoef} × Arancel: $${arancel}/m² × M²: ${m2} = $${baseCalc.toFixed(2)}<br>
+                                Alícuota: ${alicuota}% de $${baseCalc.toFixed(2)} = $${(baseCalc * alicuotaDecimal).toFixed(2)}<br>
+                                <strong>Total: $${totalAmount.toFixed(2)}</strong>
+                            `;
+                        }
+                    }
+                }
+            }
+
+            if (totalAmount === 0) {
+                detailedCalc = '<strong>Desglose del Cálculo:</strong><br>Selecciona una categoría y subcategoría para ver el cálculo';
+            }
+
+            document.getElementById('resultValue').textContent = totalAmount.toFixed(2);
+            document.getElementById('calcDetailsContainer').innerHTML = detailedCalc;
+        }
+
+        // Abrir modal de admin
+        function openAdminModal() {
+            document.getElementById('adminModal').classList.add('active');
+            document.getElementById('passwordSection').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+            adminLoggedIn = false;
+        }
+
+        // Cerrar modal de admin
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.remove('active');
+            adminLoggedIn = false;
+        }
+
+        // Verificar contraseña
+        function verifyAdminPassword() {
+            const password = document.getElementById('adminPassword').value;
+            const stored = getStoredPassword();
+
+            if (password === stored) {
+                adminLoggedIn = true;
+                document.getElementById('passwordSection').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                loadAdminPanel();
+                showAlert('adminAlert', 'Sesión iniciada correctamente', 'success');
+            } else {
+                showAlert('adminAlert', 'Contraseña incorrecta', 'error');
+            }
+        }
+
+        // Cargar panel de admin
+        function loadAdminPanel() {
+            loadCategories();
+            loadParentCategoriesSelect();
+            loadGlobalValues();
+            showAdminTab('categories');
+        }
+
+        // Cargar valores globales
+        function loadGlobalValues() {
+            const data = getData();
+            document.getElementById('globalArancel').value = data.arancel || 0;
+            document.getElementById('globalAlicuota').value = data.alicuota || 0;
+        }
+
+        // Actualizar valores globales
+        function updateGlobalValues() {
+            const arancel = parseFloat(document.getElementById('globalArancel').value) || 0;
+            const alicuota = parseFloat(document.getElementById('globalAlicuota').value) || 0;
+
+            const data = getData();
+            data.arancel = arancel;
+            data.alicuota = alicuota;
+            saveData(data);
+
+            calculateResult();
+            showAlert('adminAlert', 'Valores globales actualizados correctamente', 'success');
+        }
+
+        // Cargar categorías
+        function loadCategories() {
+            const data = getData();
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = '';
+
+            data.categories.forEach(cat => {
+                const div = document.createElement('div');
+                div.className = 'category-item';
+                div.innerHTML = `
+                    <div class="category-info">
+                        <strong>${cat.name}</strong>
+                        <div class="category-coef">Coeficiente: ${cat.coefficient}</div>
+                    </div>
+                    <button class="edit-coef-btn" onclick="editCategoryCoef('${cat.id}')">Editar Coef.</button>
+                    <button class="coef-delete" onclick="deleteCategory('${cat.id}')">Eliminar</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Agregar categoría
+        function addCategory() {
+            const name = document.getElementById('newCategoryName').value.trim();
+            const coef = parseFloat(document.getElementById('newCategoryCoef').value) || 1;
+
+            if (!name) {
+                showAlert('adminAlert', 'El nombre de la categoría es obligatorio', 'error');
+                return;
+            }
+
+            const data = getData();
+            data.categories.push({
+                id: 'cat' + Date.now(),
+                name: name,
+                coefficient: coef,
+                subcategories: []
+            });
+
+            saveData(data);
+            document.getElementById('newCategoryName').value = '';
+            document.getElementById('newCategoryCoef').value = '1';
+
+            loadCategories();
+            loadParentCategoriesSelect();
+            renderCalculator();
+            showAlert('adminAlert', 'Categoría agregada exitosamente', 'success');
+        }
+
+        // Editar coeficiente de categoría
+        function editCategoryCoef(categoryId) {
+            const data = getData();
+            const category = data.categories.find(c => c.id === categoryId);
+            const newCoef = prompt(`Nuevo coeficiente para "${category.name}":`, category.coefficient);
+
+            if (newCoef !== null && newCoef.trim()) {
+                category.coefficient = parseFloat(newCoef);
+                saveData(data);
+                loadCategories();
+                showAlert('adminAlert', 'Coeficiente actualizado', 'success');
+            }
+        }
+
+        // Eliminar categoría
+        function deleteCategory(categoryId) {
+            if (confirm('¿Está seguro? Esto también eliminará todas las subcategorías.')) {
+                let data = getData();
+                data.categories = data.categories.filter(c => c.id !== categoryId);
+                saveData(data);
+                loadCategories();
+                loadParentCategoriesSelect();
+                renderCalculator();
+                showAlert('adminAlert', 'Categoría eliminada', 'success');
+            }
+        }
+
+        // Cargar selector de categorías padre
+        function loadParentCategoriesSelect() {
+            const data = getData();
+            const select = document.getElementById('parentCategorySelect');
+            select.innerHTML = '<option value="">-- Elegir categoría --</option>' +
+                data.categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+        }
+
+        // Cargar subcategorías
+        function loadSubcategories() {
+            const categoryId = document.getElementById('parentCategorySelect').value;
+            const data = getData();
+            const category = data.categories.find(c => c.id === categoryId);
+
+            const container = document.getElementById('subcategoriesContainer');
+            container.innerHTML = '';
+
+            if (!category) return;
+
+            category.subcategories.forEach(sub => {
+                const div = document.createElement('div');
+                div.className = 'subcategory-item';
+                div.innerHTML = `
+                    <div class="subcategory-info">
+                        <strong>${sub.name}</strong>
+                        <div class="subcategory-coef">Coeficiente: ${sub.coefficient}</div>
+                    </div>
+                    <button class="edit-coef-btn" onclick="editSubcategoryCoef('${categoryId}', '${sub.id}')">Editar Coef.</button>
+                    <button class="coef-delete" onclick="deleteSubcategory('${categoryId}', '${sub.id}')">Eliminar</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Agregar subcategoría
+        function addSubcategory() {
+            const categoryId = document.getElementById('parentCategorySelect').value;
+            const name = document.getElementById('newSubcategoryName').value.trim();
+            const coef = parseFloat(document.getElementById('newSubcategoryCoef').value) || 1;
+
+            if (!categoryId) {
+                showAlert('adminAlert', 'Debes seleccionar una categoría', 'error');
+                return;
+            }
+
+            if (!name) {
+                showAlert('adminAlert', 'El nombre de la subcategoría es obligatorio', 'error');
+                return;
+            }
+
+            const data = getData();
+            const category = data.categories.find(c => c.id === categoryId);
+            
+            category.subcategories.push({
+                id: 'sub' + Date.now(),
+                name: name,
+                coefficient: coef
+            });
+
+            saveData(data);
+            document.getElementById('newSubcategoryName').value = '';
+            document.getElementById('newSubcategoryCoef').value = '1';
+
+            loadSubcategories();
+            renderCalculator();
+            showAlert('adminAlert', 'Subcategoría agregada exitosamente', 'success');
+        }
+
+        // Editar coeficiente de subcategoría
+        function editSubcategoryCoef(categoryId, subcategoryId) {
+            const data = getData();
+            const category = data.categories.find(c => c.id === categoryId);
+            const subcategory = category.subcategories.find(s => s.id === subcategoryId);
+            
+            const newCoef = prompt(`Nuevo coeficiente para "${subcategory.name}":`, subcategory.coefficient);
+
+            if (newCoef !== null && newCoef.trim()) {
+                subcategory.coefficient = parseFloat(newCoef);
+                saveData(data);
+                loadSubcategories();
+                showAlert('adminAlert', 'Coeficiente actualizado', 'success');
+            }
+        }
+
+        // Eliminar subcategoría
+        function deleteSubcategory(categoryId, subcategoryId) {
+            if (confirm('¿Está seguro de que desea eliminar esta subcategoría?')) {
+                let data = getData();
+                const category = data.categories.find(c => c.id === categoryId);
+                category.subcategories = category.subcategories.filter(s => s.id !== subcategoryId);
+                saveData(data);
+                loadSubcategories();
+                renderCalculator();
+                showAlert('adminAlert', 'Subcategoría eliminada', 'success');
+            }
+        }
+
+        // Mostrar tab de admin
+        function showAdminTab(tabName) {
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+            event.target.classList.add('active');
+        }
+
+        // Cambiar contraseña
+        function changeAdminPassword() {
+            const newPassword = prompt('Ingrese la nueva contraseña:');
+            if (newPassword && newPassword.trim()) {
+                localStorage.setItem('tasa_obra_password', newPassword.trim());
+                showAlert('adminAlert', 'Contraseña actualizada correctamente', 'success');
+            }
+        }
+
+        // Cerrar sesión
+        function logoutAdmin() {
+            adminLoggedIn = false;
+            document.getElementById('passwordSection').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        // Mostrar alerta
+        function showAlert(elementId, message, type) {
+            const alert = document.getElementById(elementId);
+            alert.textContent = message;
+            alert.className = `alert ${type} show`;
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 3000);
+        }
+
+        // Cerrar modal al hacer click fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('adminModal');
+            if (event.target === modal) {
+                closeAdminModal();
+            }
+        };
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeData();
+            renderCalculator();
+            calculateResult();
+        });
+    </script>
+</body>
+</html>
