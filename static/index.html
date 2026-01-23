@@ -63,7 +63,7 @@
         <button onclick="cerrarAdmin()" style="margin-top:10px; float:right;">Cerrar</button>
     </div>
 
-    <h1 class="no-print">Liquidación de Derechos de Construcción</h1>
+    <h1 class="no-print">Simulador De Liquidación de Derechos de Construcción</h1>
 
     <div class="grid no-print">
         <div class="section">
@@ -107,21 +107,132 @@
             <select id="tipoObra" onchange="calcular()">
                 <optgroup label="1. VIVIENDA">
                     <option value="0.5" data-name="1.1 Interés Social">1.1 Interés Social (0.5)</option>
+                    <option value="0.075" data-name="1.1.1 Prefabricadas económicas de madera">1.1.1 Prefabricadas madera (0.075)</option>
+                    <option value="0.1" data-name="1.1.2 Menores de 70m² (Art. 25)">1.1.2 Menores de 70m² (0.1)</option>
+                </optgroup>
+            
+                <optgroup label="1.2 UNIFAMILIARES">
                     <option value="0.7" data-name="1.2.1 Albañilería h/ 80m²">1.2.1 Albañilería h/ 80m² (0.7)</option>
                     <option value="1.0" data-name="1.2.2 Unifamiliar 80-150m²" selected>1.2.2 Unifamiliar 80-150m² (1.0)</option>
                     <option value="1.2" data-name="1.2.2 Unifamiliar 150-250m²">1.2.2 Unifamiliar 150-250m² (1.2)</option>
                     <option value="1.4" data-name="1.2.3 Cat. Superior > 250m²">1.2.3 Cat. Superior > 250m² (1.4)</option>
-                    <option value="0.6" data-name="1.6.1 Piscina HºAº">1.6.1 Piscina HºAº (0.6)</option>
                 </optgroup>
-                <optgroup label="2. INDUSTRIAL / ALMACENAJE">
-                    <option value="0.4" data-name="2.1 Depósito / Baja Complejidad">2.1 Depósito (0.4)</option>
-                    <option value="0.6" data-name="2.2 Industrial c/ admin">2.2 Industrial c/ admin (0.6)</option>
-                    <option value="0.2" data-name="2.6.1 Silo HºAº">2.6.1 Silo HºAº (0.2)</option>
+            
+                <optgroup label="1.3 MULTIFAMILIAR">
+                    <option value="1.0" data-name="1.3.1 PB y 1 piso alto">1.3.1 PB y 1 piso alto (1.0)</option>
+                    <option value="1.2" data-name="1.3.2 PB y hasta 3 pisos">1.3.2 PB y hasta 3 pisos (1.2)</option>
+                    <option value="1.4" data-name="1.3.3 PB y más de 3 pisos">1.3.3 PB y más de 3 pisos (1.4)</option>
                 </optgroup>
+            
+                <optgroup label="1.4 y 1.5 MANTENIMIENTO E INDUSTRIALIZADAS">
+                    <option value="1.0" data-name="1.4.1 Mantenimiento de Edificios">1.4.1 Mantenimiento de Edificios (1.0)</option>
+                    <option value="0.5" data-name="1.5.1 Industrializadas">1.5.1 Industrializadas (0.5)</option>
+                </optgroup>
+            
+                <optgroup label="1.6 PISCINAS">
+                    <option value="0.6" data-name="1.6.1 Hormigón Armado revestida">1.6.1 HºAº revestida (0.6)</option>
+                    <option value="0.4" data-name="1.6.2 Albañilería / Fibra de vidrio">1.6.2 Albañilería/Fibra (0.4)</option>
+                    <option value="0.25" data-name="1.6.3 Otras piscinas">1.6.3 Otras piscinas (0.25)</option>
+                </optgroup>
+            
+                <optgroup label="2. INDUSTRIAL Y ALMACENAJE">
+                    <option value="0.4" data-name="2.1.1 Baja complejidad / Depósito">2.1.1 Depósito (0.4)</option>
+                    <option value="0.6" data-name="2.2.1 Con destino / Admin">2.2.1 Con Admin (0.6)</option>
+                    <option value="1.0" data-name="2.3.1 Alta complejidad / Lab">2.3.1 Alta complejidad (1.0)</option>
+                    <option value="0.3" data-name="2.4.1 Invernáculos / Cría">2.4.1 Invernáculos (0.3)</option>
+                    <option value="0.2" data-name="2.5.1 Tinglados y Cobertizos">2.5.1 Tinglados (0.2)</option>
+                    <option value="0.2" data-name="2.6.1 Silos Hº Aº">2.6.1 Silos Hº Aº (0.2)</option>
+                    <option value="0.08" data-name="2.6.2 Silos Mampostería">2.6.2 Silos Mampostería (0.08)</option>
+                    <option value="0.2" data-name="2.6.3 Silos de Chapa">2.6.3 Silos de Chapa (0.2)</option>
+                </optgroup>
+            
                 <optgroup label="3. COMERCIO">
-                    <option value="0.5" data-name="3.1 Minorista h/ 50m²">3.1 Minorista h/ 50m² (0.5)</option>
-                    <option value="0.7" data-name="3.2 Minorista > 50m²">3.2 Minorista > 50m² (0.7)</option>
-                    <option value="1.4" data-name="3.6 Shopping">3.6 Shopping (1.4)</option>
+                    <option value="0.5" data-name="3.1.1 Minorista h/ 50m²">3.1.1 Minorista h/ 50m² (0.5)</option>
+                    <option value="0.7" data-name="3.2.1 Minorista > 50m²">3.2.1 Minorista > 50m² (0.7)</option>
+                    <option value="0.7" data-name="3.3.1 Galería / Paseo">3.3.1 Galería Comercial (0.7)</option>
+                    <option value="0.7" data-name="3.4.1 Mercado Minorista/Mayorista">3.4.1 Mercado (0.7)</option>
+                    <option value="0.8" data-name="3.5.1 Supermercado">3.5.1 Supermercado (0.8)</option>
+                    <option value="1.4" data-name="3.6.1 Shopping">3.6.1 Shopping (1.4)</option>
+                </optgroup>
+            
+                <optgroup label="4. CULTURA Y ESPECTACULOS">
+                    <option value="0.7" data-name="4.1.1 Bibliotecas / Multicultural">4.1.1 Bibliotecas (0.7)</option>
+                    <option value="1.0" data-name="4.2.1 Salones fiesta / Bailables">4.2.1 Salones Fiesta (1.0)</option>
+                    <option value="1.0" data-name="4.3.1 Cafés Concert / Auditorios">4.3.1 Auditorios (1.0)</option>
+                    <option value="1.0" data-name="4.4.1 Cines">4.4.1 Cines (1.0)</option>
+                    <option value="1.0" data-name="4.5.1 Teatros">4.5.1 Teatros (1.0)</option>
+                    <option value="1.4" data-name="4.6.1 Casinos / Salas de juego">4.6.1 Casinos (1.4)</option>
+                    <option value="0.375" data-name="4.7.1 Autocines">4.7.1 Autocines (0.375)</option>
+                    <option value="1.0" data-name="4.8.1 Anfiteatros">4.8.1 Anfiteatros (1.0)</option>
+                </optgroup>
+            
+                <optgroup label="5. EDUCACIÓN">
+                    <option value="0.5" data-name="5.1.1 EGB/JI h/ 200m²">5.1.1 EGB/JI h/ 200m² (0.5)</option>
+                    <option value="1.0" data-name="5.2.1 EGB/JI > 200m²">5.2.1 EGB/JI > 200m² (1.0)</option>
+                    <option value="1.4" data-name="5.3.1 Escuelas / Facultades">5.3.1 Universidades (1.4)</option>
+                </optgroup>
+            
+                <optgroup label="6. SALUD">
+                    <option value="0.7" data-name="6.1.1 Dispensarios / Salitas">6.1.1 Dispensarios (0.7)</option>
+                    <option value="0.8" data-name="6.2.1 Consultorios / Lab">6.2.1 Consultorios (0.8)</option>
+                    <option value="0.8" data-name="6.3.1 Clínicas / Geriátricos">6.3.1 Clínicas (0.8)</option>
+                    <option value="0.8" data-name="6.4.1 Hospitales / Alta compl.">6.4.1 Hospitales (0.8)</option>
+                </optgroup>
+            
+                <optgroup label="7, 8 y 9 BANCOS, HOTELES Y RESTO">
+                    <option value="1.25" data-name="7.1.1 Bancos y Financieras">7.1.1 Bancos (1.25)</option>
+                    <option value="0.8" data-name="8.1.1 Hosterías / Pensiones">8.1.1 Hosterías (0.8)</option>
+                    <option value="1.0" data-name="8.2.1 Hoteles 2 y 3 estrellas">8.2.1 Hoteles 2-3* (1.0)</option>
+                    <option value="1.2" data-name="8.3.1 Albergues transitorios">8.3.1 Albergues (1.2)</option>
+                    <option value="2.0" data-name="8.4.1 Hoteles 4 y 5 estrellas">8.4.1 Hoteles 4-5* (2.0)</option>
+                    <option value="0.7" data-name="9.1.1 Parrillas / Casas comida">9.1.1 Parrillas (0.7)</option>
+                    <option value="0.8" data-name="9.2.1 Restaurantes / Pizzerías">9.2.1 Restaurantes (0.8)</option>
+                    <option value="1.0" data-name="9.3.1 Elaboración de alimentos">9.3.1 Elaboración Alim. (1.0)</option>
+                    <option value="1.2" data-name="9.4.1 Restaurantes categoría">9.4.1 Resto Categoría (1.2)</option>
+                </optgroup>
+            
+                <optgroup label="10. CULTO Y FUNERARIA">
+                    <option value="0.7" data-name="10.1.1 Capillas">10.1.1 Capillas (0.7)</option>
+                    <option value="1.0" data-name="10.2.1 Iglesias">10.2.1 Iglesias (1.0)</option>
+                    <option value="1.0" data-name="10.3.1 Velatorios">10.3.1 Velatorios (1.0)</option>
+                    <option value="0.025" data-name="10.4.1 Parquización cementerio">10.4.1 Parquización (0.025)</option>
+                    <option value="0.125" data-name="10.4.2 Nichos (por unidad)">10.4.2 Nichos (0.125)</option>
+                    <option value="1.0" data-name="10.4.3 Bóvedas o panteones">10.4.3 Bóvedas (1.0)</option>
+                </optgroup>
+            
+                <optgroup label="11. ESPACIOS DESCUBIERTOS">
+                    <option value="0.025" data-name="11.1.1 Parquización exterior">11.1.1 Parquización (0.025)</option>
+                    <option value="0.02" data-name="11.3.1 Red Vial Mejorada">11.3.1 Vial Mejorada (0.02)</option>
+                    <option value="0.06" data-name="11.3.2 Pavimento Rígido">11.3.2 Pav. Rígido (0.06)</option>
+                    <option value="0.04" data-name="11.3.3 Pavimento Flexible">11.3.3 Pav. Flexible (0.04)</option>
+                    <option value="0.04" data-name="11.3.4 Mantenimiento Red Vial">11.3.4 Mant. Vial (0.04)</option>
+                </optgroup>
+            
+                <optgroup label="12, 13 y 14 ADMIN, DEPORTE Y COCHERAS">
+                    <option value="0.7" data-name="12.1.1 Edificios privados">12.1.1 Edif. Privados (0.7)</option>
+                    <option value="0.7" data-name="13.1.1 Club Social">13.1.1 Club Social (0.7)</option>
+                    <option value="0.7" data-name="13.2.1 Deportivo s/ tribuna < 15m">13.2.1 Deportivo (0.7)</option>
+                    <option value="1.0" data-name="13.2.2 Deportivo s/ tribuna > 15m">13.2.2 Depor. Especial (1.0)</option>
+                    <option value="1.0" data-name="13.2.3 Deportivo con tribuna">13.2.3 Depor. c/Tribuna (1.0)</option>
+                    <option value="0.5" data-name="13.3.1 Natatorios descubiertos">13.3.1 Natatorios desc. (0.5)</option>
+                    <option value="0.2" data-name="13.3.2 Natatorios cubiertos">13.3.2 Natatorios cub. (0.2)</option>
+                    <option value="0.5" data-name="13.4.1 Gimnasios">13.4.1 Gimnasios (0.5)</option>
+                    <option value="0.05" data-name="13.5.1 Canchas sobre césped">13.5.1 Canchas césped (0.05)</option>
+                    <option value="0.1" data-name="13.5.2 Canchas con pisos">13.5.2 Canchas c/pisos (0.1)</option>
+                    <option value="0.5" data-name="14.1.1 Cocheras cubierta liviana">14.1.1 Cocheras livianas (0.5)</option>
+                    <option value="0.6" data-name="14.2.1 Cocheras HºAº">14.2.1 Cocheras HºAº (0.6)</option>
+                    <option value="0.7" data-name="14.3.1 Cocheras multinivel s/ elev.">14.3.1 Cochera s/ elev. (0.7)</option>
+                    <option value="1.0" data-name="14.4.1 Cocheras multinivel c/ elev.">14.4.1 Cochera c/ elev. (1.0)</option>
+                </optgroup>
+            
+                <optgroup label="15, 16 y 17 ESTACIONES Y ESTRUCTURAS">
+                    <option value="0.1" data-name="15.1.1 Playas de estacionamiento">15.1.1 Playas estac. (0.1)</option>
+                    <option value="0.8" data-name="15.2.1 Estación Servicio Cubierta">15.2.1 Playas cubiertas (0.8)</option>
+                    <option value="0.4" data-name="15.2.2 Estación Servicio Descub.">15.2.2 Playas desc. (0.4)</option>
+                    <option value="1.2" data-name="16.1.1 Terminal Ómnibus/Ferro">16.1.1 Terminales (1.2)</option>
+                    <option value="1.4" data-name="16.2.1 Aeropuertos">16.2.1 Aeropuertos (1.4)</option>
+                    <option value="0.15" data-name="17.1.1 Estructuras s/ viento">17.1.1 Estruct. s/ viento (0.15)</option>
+                    <option value="0.2" data-name="17.2.1 Estructuras c/ viento">17.2.1 Estruct. c/ viento (0.2)</option>
                 </optgroup>
             </select>
 
@@ -132,15 +243,22 @@
                 <option value="0.10" data-name="21 a 30 años (10%)">21 a 30 años (10%)</option>
                 <option value="0.20" data-name="31 a 40 años (20%)">31 a 40 años (20%)</option>
                 <option value="0.40" data-name="41 a 50 años (40%)">41 a 50 años (40%)</option>
+                <option value="0.60" data-name="51 a 60 años (60%)">51 a 60 años (60%)</option>
                 <option value="1.00" data-name="Más de 70 años (100%)">Más de 70 años (100%)</option>
             </select>
 
             <label>Servicios (Tabla N° 4):</label>
             <select id="servicios" onchange="calcular()">
                 <option value="0" data-name="Con los 5 servicios (0%)">Con los 5 servicios (0% desc)</option>
-                <option value="0.10" data-name="Pavimento y 3 servicios (10%)">Pavimento y 3 servicios (10% desc)</option>
-                <option value="0.40" data-name="Sin pavimento y 3 servicios (40%)">Sin pavimento y 3 servicios (40% desc)</option>
-                <option value="0.70" data-name="Un servicio o ninguno (70%)">Un servicio o ninguno (70% desc)</option>
+                <option value="0.10" data-name="Con Pavimento y 3 servicios (10%)">Con Pavimento y 3 servicios (10% desc)</option>
+
+                <option value="0.20" data-name="Con gas, cloacas, agua corriente y energía eléctrica (20%)">Con gas, cloacas, agua corriente y energía eléctrica (20% desc)</option>
+                <option value="0.30" data-name="Con Pavimento y 2 servicios (10%)">Con Pavimento y 2 servicios (30% desc)</option>
+                <option value="0.40" data-name="Sin Pavimento y 3 servicios (40%)">Sin Pavimento y 3 servicios (40% desc)</option>
+                <option value="0.10" data-name="Con Pavimento y 1 servicios (50%)">Con Pavimento y 1 servicios (50% desc)</option>
+                <option value="0.10" data-name="Sin Pavimento y 2 servicios (60%)">Sin Pavimento y 2 servicios (60% desc)</option>
+                
+                <option value="0.70" data-name="Con un servicio o sin servicios (70%)">Con un servicio o sin servicios (70% desc)</option>
             </select>
         </div>
     </div>
@@ -161,8 +279,10 @@
         </div>
 
         <div class="disclaimer">
-            Este es un <strong>cálculo estimativo</strong> realizado a fines de informar los montos aproximados de la liquidación. 
-            Sujeto a revisión técnica definitiva por la autoridad municipal competente.
+            Este <strong>simulador</strong> tiene carácter orientativo y no constituye una liquidación oficial.
+            Los valores obtenidos son estimativos y podrán variar una vez analizado el expediente por la Municipalidad,
+            conforme al <strong>Código Urbano, Código de Edificación y normativa vigente.</strong>
+            El cálculo definitivo será determinado exclusivamente por el Municipio y no posee validez legal hasta su aprobación administrativa.
             <a href="https://www.9dejulio.gov.ar/pdf/ordenanzas/ORDENANZA_IMPOSITIVA_EJERCICIO_2026.pdf" target="_blank" class="ord-link no-print">Ver Ordenanza Impositiva Ejercicio 2026</a>
         </div>
     </div>
