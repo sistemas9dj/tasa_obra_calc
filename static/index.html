@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Calculador Municipal</title>
+    <title>Calculador Municipal - 9 de Julio</title>
     <style>
         :root { --primary: #1a3a5a; --accent: #27ae60; --bg: #f4f7f6; --admin-color: #c0392b; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
@@ -12,6 +12,7 @@
         h1 { text-align: center; color: var(--primary); border-bottom: 3px solid var(--accent); padding-bottom: 10px; }
         label { font-weight: bold; display: block; margin-top: 12px; font-size: 0.9em; }
         select, input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        select:disabled { background-color: #eee; cursor: not-allowed; color: #888; }
         
         .admin-panel { background: #fff3f3; border: 2px dashed var(--admin-color); padding: 15px; margin-bottom: 20px; border-radius: 8px; }
         .admin-btn { background: var(--admin-color); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
@@ -20,8 +21,11 @@
         .report-area { margin-top: 30px; border: 2px solid #000; padding: 40px; background: white; }
         .report-header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px; }
         .line { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
-        .total-box { margin-top: 30px; background: #f9f9f9; color: #000; padding: 20px; border: 2px solid #000; text-align: right; }
+        .total-box { margin-top: 20px; background: #f9f9f9; color: #000; padding: 20px; border: 2px solid #000; text-align: right; }
         .total-val { font-size: 2.2em; font-weight: bold; }
+        
+        .disclaimer { margin-top: 20px; font-size: 0.85em; color: #555; border-top: 1px solid #ccc; padding-top: 10px; text-align: center; font-style: italic; }
+        .ord-link { display: block; margin-top: 10px; color: var(--primary); text-decoration: underline; font-weight: bold; }
         
         .btn-print { background: #1a3a5a; color: white; padding: 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; font-size: 1.1em; }
 
@@ -77,8 +81,17 @@
                 <option value="ART65">Art. 65: Cambio de Destino (150 mód)</option>
             </select>
 
-            <label>Superficie Total (m²):</label>
-            <input type="number" id="supTotal" value="0" oninput="calcular()">
+            <div id="divSupNormal">
+                <label>Superficie Total (m²):</label>
+                <input type="number" id="supTotal" value="0" oninput="calcular()">
+            </div>
+
+            <div id="divSupExcesos" class="hidden">
+                <label>Superficie Exceso (Cat. 140 mód) m²:</label>
+                <input type="number" id="sup140" value="0" oninput="calcular()">
+                <label>Superficie Exceso (Cat. 180 mód) m²:</label>
+                <input type="number" id="sup180" value="0" oninput="calcular()">
+            </div>
 
             <div id="divViviendaUnica" class="hidden">
                 <label>¿Es Vivienda Única < 100m²?</label>
@@ -92,41 +105,42 @@
         <div class="section">
             <label>Tipología de Obra (Tabla N° 3):</label>
             <select id="tipoObra" onchange="calcular()">
-                <optgroup label="Viviendas">
+                <optgroup label="1. VIVIENDA">
                     <option value="0.5" data-name="1.1 Interés Social">1.1 Interés Social (0.5)</option>
-                    <option value="0.7" data-name="1.2.1 Albañilería h/ 80m2">1.2.1 Albañilería h/ 80m2 (0.7)</option>
-                    <option value="1.0" data-name="1.2.2 Unifamiliar 80-150m2" selected>1.2.2 Unifamiliar 80-150m2 (1.0)</option>
-                    <option value="1.2" data-name="1.2.2 Unifamiliar 150-250m2">1.2.2 Unifamiliar 150-250m2 (1.2)</option>
-                    <option value="1.4" data-name="1.2.3 Categoría Superior > 250m2">1.2.3 Cat. Superior > 250m2 (1.4)</option>
+                    <option value="0.7" data-name="1.2.1 Albañilería h/ 80m²">1.2.1 Albañilería h/ 80m² (0.7)</option>
+                    <option value="1.0" data-name="1.2.2 Unifamiliar 80-150m²" selected>1.2.2 Unifamiliar 80-150m² (1.0)</option>
+                    <option value="1.2" data-name="1.2.2 Unifamiliar 150-250m²">1.2.2 Unifamiliar 150-250m² (1.2)</option>
+                    <option value="1.4" data-name="1.2.3 Cat. Superior > 250m²">1.2.3 Cat. Superior > 250m² (1.4)</option>
+                    <option value="0.6" data-name="1.6.1 Piscina HºAº">1.6.1 Piscina HºAº (0.6)</option>
                 </optgroup>
-                <optgroup label="Comercio / Industria">
-                    <option value="0.7" data-name="3.2 Comercio > 50m2">3.2 Comercio > 50m2 (0.7)</option>
+                <optgroup label="2. INDUSTRIAL / ALMACENAJE">
+                    <option value="0.4" data-name="2.1 Depósito / Baja Complejidad">2.1 Depósito (0.4)</option>
+                    <option value="0.6" data-name="2.2 Industrial c/ admin">2.2 Industrial c/ admin (0.6)</option>
+                    <option value="0.2" data-name="2.6.1 Silo HºAº">2.6.1 Silo HºAº (0.2)</option>
+                </optgroup>
+                <optgroup label="3. COMERCIO">
+                    <option value="0.5" data-name="3.1 Minorista h/ 50m²">3.1 Minorista h/ 50m² (0.5)</option>
+                    <option value="0.7" data-name="3.2 Minorista > 50m²">3.2 Minorista > 50m² (0.7)</option>
                     <option value="1.4" data-name="3.6 Shopping">3.6 Shopping (1.4)</option>
-                    <option value="0.4" data-name="2.1 Depósitos / Baja complejidad">2.1 Depósitos (0.4)</option>
-                    <option value="0.6" data-name="2.2 Industrial con admin">2.2 Industrial con admin (0.6)</option>
-                </optgroup>
-                <optgroup label="Otros">
-                    <option value="0.6" data-name="1.6.1 Piscinas HºAº">1.6.1 Piscinas HºAº (0.6)</option>
-                    <option value="0.5" data-name="14.1 Cocheras cubierta liviana">14.1 Cocheras (0.5)</option>
                 </optgroup>
             </select>
 
             <label>Antigüedad (Tabla N° 2):</label>
             <select id="antiguedad" onchange="calcular()">
-                <option value="0" data-name="Obra Nueva">Obra Nueva (0%)</option>
-                <option value="0.05" data-name="1 a 20 años">1 a 20 años (5%)</option>
-                <option value="0.10" data-name="21 a 30 años">21 a 30 años (10%)</option>
-                <option value="0.20" data-name="31 a 40 años">31 a 40 años (20%)</option>
-                <option value="0.40" data-name="41 a 50 años">41 a 50 años (40%)</option>
-                <option value="1.00" data-name="Más de 70 años">Más de 70 años (100%)</option>
+                <option value="0" data-name="Obra Nueva (0%)">Obra Nueva (0%)</option>
+                <option value="0.05" data-name="1 a 20 años (5%)">1 a 20 años (5%)</option>
+                <option value="0.10" data-name="21 a 30 años (10%)">21 a 30 años (10%)</option>
+                <option value="0.20" data-name="31 a 40 años (20%)">31 a 40 años (20%)</option>
+                <option value="0.40" data-name="41 a 50 años (40%)">41 a 50 años (40%)</option>
+                <option value="1.00" data-name="Más de 70 años (100%)">Más de 70 años (100%)</option>
             </select>
 
             <label>Servicios (Tabla N° 4):</label>
             <select id="servicios" onchange="calcular()">
-                <option value="0" data-name="Con los 5 servicios">Con los 5 servicios (0% desc)</option>
-                <option value="0.10" data-name="Pavimento y 3 servicios">Pavimento y 3 servicios (10% desc)</option>
-                <option value="0.40" data-name="Sin pavimento y 3 servicios">Sin pavimento y 3 servicios (40% desc)</option>
-                <option value="0.70" data-name="Un servicio o sin servicios">Un servicio o sin servicios (70% desc)</option>
+                <option value="0" data-name="Con los 5 servicios (0%)">Con los 5 servicios (0% desc)</option>
+                <option value="0.10" data-name="Pavimento y 3 servicios (10%)">Pavimento y 3 servicios (10% desc)</option>
+                <option value="0.40" data-name="Sin pavimento y 3 servicios (40%)">Sin pavimento y 3 servicios (40% desc)</option>
+                <option value="0.70" data-name="Un servicio o ninguno (70%)">Un servicio o ninguno (70% desc)</option>
             </select>
         </div>
     </div>
@@ -142,12 +156,18 @@
         <div id="detalleCalculo"></div>
 
         <div class="total-box">
-            <div style="font-weight: bold; margin-bottom: 5px; font-size: 1.1em;">TOTAL A PAGAR</div>
+            <div style="font-weight: bold; margin-bottom: 5px; font-size: 1.1em;">TOTAL A LIQUIDAR</div>
             <div class="total-val" id="totalFinal">$ 0,00</div>
+        </div>
+
+        <div class="disclaimer">
+            Este es un <strong>cálculo estimativo</strong> realizado a fines de informar los montos aproximados de la liquidación. 
+            Sujeto a revisión técnica definitiva por la autoridad municipal competente.
+            <a href="https://www.9dejulio.gov.ar/pdf/ordenanzas/ORDENANZA_IMPOSITIVA_EJERCICIO_2026.pdf" target="_blank" class="ord-link no-print">Ver Ordenanza Impositiva Ejercicio 2026</a>
         </div>
     </div>
 
-    <button class="btn-print no-print" onclick="window.print()">🖨️ GENERAR E IMPRIMIR REPORTE</button>
+    <button class="btn-print no-print" onclick="window.print()">🖨️ IMPRIMIR REPORTE</button>
 </div>
 
 <script>
@@ -155,22 +175,27 @@
     const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
 
     async function cargarConfig() {
-        const response = await fetch('/api/config');
-        config = await response.json();
-        document.getElementById('configArancel').value = config.arancel;
-        document.getElementById('configModulo').value = config.modulo;
-        calcular();
+        try {
+            const response = await fetch('/api/config');
+            config = await response.json();
+            document.getElementById('configArancel').value = config.arancel;
+            document.getElementById('configModulo').value = config.modulo;
+            
+            // EJECUTAR LÓGICA DE INICIO DESPUÉS DE CARGAR CONFIG
+            toggleTramite(); 
+            calcular();
+        } catch (e) { console.error("Error al cargar config"); }
     }
 
     async function accesoAdmin() {
-        const p = prompt("Contraseña de administrador:");
+        const p = prompt("Contraseña:");
         const res = await fetch('/api/login', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({password: p})
         });
         if(res.ok) document.getElementById('panelConfig').classList.remove('hidden');
-        else alert("Clave incorrecta");
+        else alert("Acceso denegado");
     }
 
     async function guardarConfig() {
@@ -182,7 +207,7 @@
             body: JSON.stringify({arancel, modulo})
         });
         config = {arancel, modulo};
-        alert("Valores guardados en la base de datos.");
+        alert("Configuración guardada.");
         calcular();
     }
 
@@ -194,12 +219,25 @@
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({old_pass: oldP, new_pass: newP})
         });
-        if(res.ok) alert("Contraseña actualizada correctamente.");
-        else alert("La clave actual no es válida.");
+        if(res.ok) alert("Contraseña cambiada.");
+        else alert("Clave actual incorrecta.");
     }
 
     function toggleTramite() {
         const t = document.getElementById('tipoTramite').value;
+        const anti = document.getElementById('antiguedad');
+        
+        // Deshabilitar antigüedad si es Obra Nueva
+        if (t === 'DERECHO') {
+            anti.value = "0";
+            anti.disabled = true;
+        } else {
+            anti.disabled = false;
+        }
+
+        const isExceso = (t === 'ART62' || t === 'ART63');
+        document.getElementById('divSupNormal').className = isExceso ? 'hidden' : '';
+        document.getElementById('divSupExcesos').className = isExceso ? '' : 'hidden';
         document.getElementById('divViviendaUnica').className = (['ART61', 'ART62'].includes(t)) ? '' : 'hidden';
         calcular();
     }
@@ -208,7 +246,6 @@
         const t = document.getElementById('tipoTramite');
         const tramiteText = t.options[t.selectedIndex].text;
         const prop = document.getElementById('propNombre').value || "---";
-        const supT = parseFloat(document.getElementById('supTotal').value) || 0;
         
         const tipoObraSel = document.getElementById('tipoObra');
         const tipologiaName = tipoObraSel.options[tipoObraSel.selectedIndex].getAttribute('data-name');
@@ -222,56 +259,60 @@
         const servName = servSel.options[servSel.selectedIndex].getAttribute('data-name');
         const servVal = parseFloat(servSel.value);
         
-        document.getElementById('fechaReporte').innerText = "Fecha de emisión: " + new Date().toLocaleDateString();
+        document.getElementById('fechaReporte').innerText = "Fecha: " + new Date().toLocaleDateString();
 
-        let base = 0;
-        let refLabel = "";
-        let refMonto = "";
+        let subtotalDerecho = 0; 
+        let detalleSup = "";
 
         if (t.value === 'DERECHO') {
-            base = supT * config.arancel * coef;
-            refLabel = "Arancel Vigente (Art. 33):";
-            refMonto = fmt.format(config.arancel);
+            const m2 = parseFloat(document.getElementById('supTotal').value) || 0;
+            const montoObra = m2 * config.arancel * coef;
+            subtotalDerecho = montoObra * 0.01;
+            detalleSup = `${m2} m² x Arancel $${config.arancel.toLocaleString()}`;
+        } else if (t.value === 'ART62' || t.value === 'ART63') {
+            const m140 = parseFloat(document.getElementById('sup140').value) || 0;
+            const m180 = parseFloat(document.getElementById('sup180').value) || 0;
+            subtotalDerecho = (m140 * (140 * config.modulo) * coef) + (m180 * (180 * config.modulo) * coef);
+            detalleSup = `${m140} m² (140 mód) + ${m180} m² (180 mód)`;
         } else {
+            const m2 = parseFloat(document.getElementById('supTotal').value) || 0;
             let modulos = 120;
             const unica = document.getElementById('viviendaUnica').value === 'SI';
             if(t.value === 'ART60') modulos = 54;
             else if(t.value === 'ART61') modulos = unica ? 54 : 120;
-            else if(t.value === 'ART62') modulos = unica ? 54 : 140;
-            base = supT * (modulos * config.modulo) * coef;
-            refLabel = `Módulos por Art. (${modulos} mód) x Valor Módulo:`;
-            refMonto = fmt.format(config.modulo);
+            subtotalDerecho = m2 * (modulos * config.modulo) * coef;
+            detalleSup = `${m2} m² x ${modulos} mód.`;
         }
 
-        document.getElementById('datosExpediente').innerHTML = `
-            <div class="line"><span>Propietario / Ref:</span> <strong>${prop}</strong></div>
-            <div class="line"><span>${refLabel}</span> <strong>${refMonto}</strong></div>
-        `;
+        const descAntig = subtotalDerecho * antigVal;
+        const descServ = (subtotalDerecho - descAntig) * servVal;
+        const total = subtotalDerecho - descAntig - descServ;
 
-        const derecho = base * 0.01;
-        const descAntig = derecho * antigVal;
-        const descServ = (derecho - descAntig) * servVal;
-        const final = derecho - descAntig - descServ;
+        document.getElementById('datosExpediente').innerHTML = `
+            <div class="line"><span>Propietario / Referencia:</span> <strong>${prop}</strong></div>
+            <div class="line"><span>Trámite seleccionado:</span> <strong>${tramiteText}</strong></div>
+        `;
 
         document.getElementById('detalleCalculo').innerHTML = `
-            <h4>RESUMEN DE SELECCIÓN:</h4>
-            <div class="line"><span>Tipo de Trámite:</span> <strong>${tramiteText}</strong></div>
-            <div class="line"><span>Tipología Seleccionada:</span> <strong>${tipologiaName} (Coef: ${coef})</strong></div>
-            <div class="line"><span>Superficie Declarada:</span> <strong>${supT} m²</strong></div>
-            <div class="line"><span>Estado de Antigüedad:</span> <strong>${antigName}</strong></div>
-            <div class="line"><span>Situación de Servicios:</span> <strong>${servName}</strong></div>
+            <h4>RESUMEN TÉCNICO:</h4>
+            <div class="line"><span>Tipología:</span> <span>${tipologiaName} (Coef: ${coef})</span></div>
+            <div class="line"><span>Superficie:</span> <span>${detalleSup}</span></div>
+            <div class="line"><span>Cálculo Base:</span> <strong>${fmt.format(subtotalDerecho)}</strong></div>
             <hr>
-            <div class="line"><span>Monto Imponible Base:</span> <strong>${fmt.format(base)}</strong></div>
-            <div class="line"><span>Derecho de Construcción (1%):</span> <strong>${fmt.format(derecho)}</strong></div>
-            <div class="line"><span>(-) Depreciación Antigüedad:</span> <strong>${fmt.format(descAntig)}</strong></div>
-            <div class="line"><span>(-) Descuento por Servicios:</span> <strong>${fmt.format(descServ)}</strong></div>
+            <h4>DESCUENTOS Y DEPRECIACIONES:</h4>
+            <div class="line"><span>Antigüedad elegida:</span> <span>${antigName}</span></div>
+            <div class="line"><span>(-) Monto depreciación:</span> <span>${fmt.format(descAntig)}</span></div>
+            <div class="line"><span>Servicios elegidos:</span> <span>${servName}</span></div>
+            <div class="line"><span>(-) Monto descuento:</span> <span>${fmt.format(descServ)}</span></div>
         `;
 
-        document.getElementById('totalFinal').innerText = fmt.format(Math.max(0, final));
+        document.getElementById('totalFinal').innerText = fmt.format(Math.max(0, total));
     }
 
     function cerrarAdmin() { document.getElementById('panelConfig').classList.add('hidden'); }
-    cargarConfig();
+    
+    // Al cargar el documento, iniciamos la configuración
+    window.onload = cargarConfig;
 </script>
 </body>
 </html>
