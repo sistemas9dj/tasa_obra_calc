@@ -19,7 +19,7 @@
         
         .report-area { margin-top: 30px; border: 2px solid #000; padding: 40px; background: white; }
         .report-header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px; }
-        .line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .line { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
         .total-box { margin-top: 30px; background: #f9f9f9; color: #000; padding: 20px; border: 2px solid #000; text-align: right; }
         .total-val { font-size: 2.2em; font-weight: bold; }
         
@@ -43,21 +43,28 @@
     </div>
 
     <div id="panelConfig" class="admin-panel hidden no-print">
-        <h3>⚙️ Configuración Oficial</h3>
+        <h3>⚙️ Configuración Oficial y Seguridad</h3>
         <div class="grid">
             <div><label>Valor Arancel ($):</label><input type="number" id="configArancel"></div>
             <div><label>Valor Módulo ($):</label><input type="number" id="configModulo"></div>
         </div>
-        <button onclick="guardarConfig()" style="margin-top:10px; cursor:pointer; background: var(--accent); color:white; border:none; padding:8px;">Guardar en DB</button>
+        <button onclick="guardarConfig()" style="margin-top:10px; background: var(--accent); color:white; border:none; padding:8px; cursor:pointer;">Guardar Valores</button>
+        <hr>
+        <h4>🔐 Cambio de Contraseña</h4>
+        <div class="grid">
+            <input type="password" id="oldPass" placeholder="Clave Actual">
+            <input type="password" id="newPass" placeholder="Clave Nueva">
+        </div>
+        <button onclick="updatePassword()" style="margin-top:10px; cursor:pointer;">Actualizar Clave</button>
         <button onclick="cerrarAdmin()" style="margin-top:10px; float:right;">Cerrar</button>
     </div>
 
-    <h1 class="no-print">Liquidación de Obras</h1>
+    <h1 class="no-print">Liquidación de Derechos de Construcción</h1>
 
     <div class="grid no-print">
         <div class="section">
             <label>Propietario / Referencia:</label>
-            <input type="text" id="propNombre" placeholder="Nombre" oninput="calcular()">
+            <input type="text" id="propNombre" placeholder="Nombre completo" oninput="calcular()">
 
             <label>Tipo de Trámite:</label>
             <select id="tipoTramite" onchange="toggleTramite()">
@@ -73,13 +80,8 @@
             <label>Superficie Total (m²):</label>
             <input type="number" id="supTotal" value="0" oninput="calcular()">
 
-            <div id="divExceso" class="hidden">
-                <label>Superficie en Exceso (m²):</label>
-                <input type="number" id="supExceso" value="0" oninput="calcular()">
-            </div>
-
             <div id="divViviendaUnica" class="hidden">
-                <label>Vivienda Única < 100m²</label>
+                <label>¿Es Vivienda Única < 100m²?</label>
                 <select id="viviendaUnica" onchange="calcular()">
                     <option value="NO">No</option>
                     <option value="SI">Sí</option>
@@ -88,28 +90,43 @@
         </div>
 
         <div class="section">
-            <label>Tipología (Tabla 3):</label>
+            <label>Tipología de Obra (Tabla N° 3):</label>
             <select id="tipoObra" onchange="calcular()">
-                <option value="1.0" data-name="Vivienda Unifamiliar (1.0)">1.2.2 Unifamiliar 80-150m2 (1.0)</option>
-                <option value="0.7" data-name="Albañilería < 80m2 (0.7)">1.2.1 Albañilería hasta 80m2 (0.7)</option>
-                <option value="0.5" data-name="Interés Social (0.5)">1.1 Interés Social (0.5)</option>
-                <option value="1.4" data-name="Cat. Superior (1.4)">1.2.3 Sup. > 250m2 (1.4)</option>
+                <optgroup label="Viviendas">
+                    <option value="0.5" data-name="1.1 Interés Social">1.1 Interés Social (0.5)</option>
+                    <option value="0.7" data-name="1.2.1 Albañilería h/ 80m2">1.2.1 Albañilería h/ 80m2 (0.7)</option>
+                    <option value="1.0" data-name="1.2.2 Unifamiliar 80-150m2" selected>1.2.2 Unifamiliar 80-150m2 (1.0)</option>
+                    <option value="1.2" data-name="1.2.2 Unifamiliar 150-250m2">1.2.2 Unifamiliar 150-250m2 (1.2)</option>
+                    <option value="1.4" data-name="1.2.3 Categoría Superior > 250m2">1.2.3 Cat. Superior > 250m2 (1.4)</option>
+                </optgroup>
+                <optgroup label="Comercio / Industria">
+                    <option value="0.7" data-name="3.2 Comercio > 50m2">3.2 Comercio > 50m2 (0.7)</option>
+                    <option value="1.4" data-name="3.6 Shopping">3.6 Shopping (1.4)</option>
+                    <option value="0.4" data-name="2.1 Depósitos / Baja complejidad">2.1 Depósitos (0.4)</option>
+                    <option value="0.6" data-name="2.2 Industrial con admin">2.2 Industrial con admin (0.6)</option>
+                </optgroup>
+                <optgroup label="Otros">
+                    <option value="0.6" data-name="1.6.1 Piscinas HºAº">1.6.1 Piscinas HºAº (0.6)</option>
+                    <option value="0.5" data-name="14.1 Cocheras cubierta liviana">14.1 Cocheras (0.5)</option>
+                </optgroup>
             </select>
 
-            <label>Antigüedad:</label>
+            <label>Antigüedad (Tabla N° 2):</label>
             <select id="antiguedad" onchange="calcular()">
-                <option value="0">Obra Nueva (0%)</option>
-                <option value="0.05">1 a 20 años (5%)</option>
-                <option value="0.10">21 a 30 años (10%)</option>
-                <option value="0.40">41 a 50 años (40%)</option>
-                <option value="1.00">Más de 70 años (100%)</option>
+                <option value="0" data-name="Obra Nueva">Obra Nueva (0%)</option>
+                <option value="0.05" data-name="1 a 20 años">1 a 20 años (5%)</option>
+                <option value="0.10" data-name="21 a 30 años">21 a 30 años (10%)</option>
+                <option value="0.20" data-name="31 a 40 años">31 a 40 años (20%)</option>
+                <option value="0.40" data-name="41 a 50 años">41 a 50 años (40%)</option>
+                <option value="1.00" data-name="Más de 70 años">Más de 70 años (100%)</option>
             </select>
 
-            <label>Servicios:</label>
+            <label>Servicios (Tabla N° 4):</label>
             <select id="servicios" onchange="calcular()">
-                <option value="0">Todos los servicios (0% desc)</option>
-                <option value="0.40">Parcial (40% desc)</option>
-                <option value="0.70">Sin servicios (70% desc)</option>
+                <option value="0" data-name="Con los 5 servicios">Con los 5 servicios (0% desc)</option>
+                <option value="0.10" data-name="Pavimento y 3 servicios">Pavimento y 3 servicios (10% desc)</option>
+                <option value="0.40" data-name="Sin pavimento y 3 servicios">Sin pavimento y 3 servicios (40% desc)</option>
+                <option value="0.70" data-name="Un servicio o sin servicios">Un servicio o sin servicios (70% desc)</option>
             </select>
         </div>
     </div>
@@ -117,24 +134,20 @@
     <div id="reporte" class="report-area">
         <div class="report-header">
             <h2 style="margin:0;">MUNICIPALIDAD DE 9 DE JULIO</h2>
-            <h3 style="margin:10px 0; color: #333;">Cálculo de derechos de construcción</h3>
-            <p id="fechaReporte" style="font-weight: bold;"></p>
+            <h3 style="margin:10px 0; color: #333;">Liquidación de Derechos de Construcción</h3>
+            <p id="fechaReporte"></p>
         </div>
         
-        <div id="datosExpediente" style="margin-bottom: 20px; border-bottom: 1px solid #000; padding-bottom: 10px;"></div>
+        <div id="datosExpediente"></div>
         <div id="detalleCalculo"></div>
 
         <div class="total-box">
-            <div style="font-weight: bold; margin-bottom: 5px; font-size: 1.1em;">TOTAL A LIQUIDAR</div>
+            <div style="font-weight: bold; margin-bottom: 5px; font-size: 1.1em;">TOTAL A PAGAR</div>
             <div class="total-val" id="totalFinal">$ 0,00</div>
         </div>
-        
-        <p style="font-size: 0.75em; color: #666; margin-top: 30px; text-align: center;">
-            Este documento es un cálculo estimativo basado en la Ordenanza Fiscal vigente.
-        </p>
     </div>
 
-    <button class="btn-print no-print" onclick="window.print()">🖨️ IMPRIMIR REPORTE</button>
+    <button class="btn-print no-print" onclick="window.print()">🖨️ GENERAR E IMPRIMIR REPORTE</button>
 </div>
 
 <script>
@@ -142,24 +155,22 @@
     const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
 
     async function cargarConfig() {
-        try {
-            const response = await fetch('/api/config');
-            config = await response.json();
-            document.getElementById('configArancel').value = config.arancel;
-            document.getElementById('configModulo').value = config.modulo;
-            calcular();
-        } catch (e) { console.error("Error al cargar config"); }
+        const response = await fetch('/api/config');
+        config = await response.json();
+        document.getElementById('configArancel').value = config.arancel;
+        document.getElementById('configModulo').value = config.modulo;
+        calcular();
     }
 
     async function accesoAdmin() {
-        const p = prompt("Contraseña:");
+        const p = prompt("Contraseña de administrador:");
         const res = await fetch('/api/login', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({password: p})
         });
         if(res.ok) document.getElementById('panelConfig').classList.remove('hidden');
-        else alert("Acceso Denegado");
+        else alert("Clave incorrecta");
     }
 
     async function guardarConfig() {
@@ -171,13 +182,24 @@
             body: JSON.stringify({arancel, modulo})
         });
         config = {arancel, modulo};
-        alert("Valores actualizados");
+        alert("Valores guardados en la base de datos.");
         calcular();
+    }
+
+    async function updatePassword() {
+        const oldP = document.getElementById('oldPass').value;
+        const newP = document.getElementById('newPass').value;
+        const res = await fetch('/api/change-password', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({old_pass: oldP, new_pass: newP})
+        });
+        if(res.ok) alert("Contraseña actualizada correctamente.");
+        else alert("La clave actual no es válida.");
     }
 
     function toggleTramite() {
         const t = document.getElementById('tipoTramite').value;
-        document.getElementById('divExceso').className = (t === 'ART62' || t === 'ART63') ? '' : 'hidden';
         document.getElementById('divViviendaUnica').className = (['ART61', 'ART62'].includes(t)) ? '' : 'hidden';
         calcular();
     }
@@ -185,62 +207,66 @@
     function calcular() {
         const t = document.getElementById('tipoTramite');
         const tramiteText = t.options[t.selectedIndex].text;
-        const supT = parseFloat(document.getElementById('supTotal').value) || 0;
         const prop = document.getElementById('propNombre').value || "---";
-        const tipoObraSel = document.getElementById('tipoObra');
-        const tipoObraName = tipoObraSel.options[tipoObraSel.selectedIndex].getAttribute('data-name');
-        const coef = parseFloat(tipoObraSel.value);
-        const antigVal = parseFloat(document.getElementById('antiguedad').value);
-        const servVal = parseFloat(document.getElementById('servicios').value);
+        const supT = parseFloat(document.getElementById('supTotal').value) || 0;
         
-        document.getElementById('fechaReporte').innerText = "Fecha: " + new Date().toLocaleDateString();
+        const tipoObraSel = document.getElementById('tipoObra');
+        const tipologiaName = tipoObraSel.options[tipoObraSel.selectedIndex].getAttribute('data-name');
+        const coef = parseFloat(tipoObraSel.value);
+
+        const antigSel = document.getElementById('antiguedad');
+        const antigName = antigSel.options[antigSel.selectedIndex].getAttribute('data-name');
+        const antigVal = parseFloat(antigSel.value);
+
+        const servSel = document.getElementById('servicios');
+        const servName = servSel.options[servSel.selectedIndex].getAttribute('data-name');
+        const servVal = parseFloat(servSel.value);
+        
+        document.getElementById('fechaReporte').innerText = "Fecha de emisión: " + new Date().toLocaleDateString();
 
         let base = 0;
-        let valorReferenciaLabel = "";
-        let valorReferenciaMonto = "";
+        let refLabel = "";
+        let refMonto = "";
 
         if (t.value === 'DERECHO') {
             base = supT * config.arancel * coef;
-            valorReferenciaLabel = "Arancel Vigente:";
-            valorReferenciaMonto = fmt.format(config.arancel);
+            refLabel = "Arancel Vigente (Art. 33):";
+            refMonto = fmt.format(config.arancel);
         } else {
-            let m1 = 0;
+            let modulos = 120;
             const unica = document.getElementById('viviendaUnica').value === 'SI';
-            if(t.value === 'ART60') m1 = 54;
-            else if(t.value === 'ART61') m1 = unica ? 54 : 120;
-            else if(t.value === 'ART62') m1 = unica ? 54 : 140;
-            else m1 = 120; 
-            base = supT * (m1 * config.modulo) * coef;
-            valorReferenciaLabel = "Valor del Módulo:";
-            valorReferenciaMonto = fmt.format(config.modulo);
+            if(t.value === 'ART60') modulos = 54;
+            else if(t.value === 'ART61') modulos = unica ? 54 : 120;
+            else if(t.value === 'ART62') modulos = unica ? 54 : 140;
+            base = supT * (modulos * config.modulo) * coef;
+            refLabel = `Módulos por Art. (${modulos} mód) x Valor Módulo:`;
+            refMonto = fmt.format(config.modulo);
         }
 
         document.getElementById('datosExpediente').innerHTML = `
-            <div class="line"><span>Propietario:</span> <strong>${prop}</strong></div>
-            <div class="line"><span>${valorReferenciaLabel}</span> <strong>${valorReferenciaMonto}</strong></div>
+            <div class="line"><span>Propietario / Ref:</span> <strong>${prop}</strong></div>
+            <div class="line"><span>${refLabel}</span> <strong>${refMonto}</strong></div>
         `;
-
-        let detalleHTML = `<h4>DETALLE TÉCNICO:</h4>
-            <div class="line"><span>Trámite seleccionado:</span> <strong>${tramiteText}</strong></div>
-            <div class="line"><span>Categoría de Obra:</span> <strong>${tipoObraName}</strong></div>
-            <div class="line"><span>Superficie Total:</span> <strong>${supT} m²</strong></div>`;
-
-        if (t.value === 'DERECHO') {
-            detalleHTML += `<div class="line"><span>Monto de Obra:</span> <strong>${fmt.format(base)}</strong></div>`;
-        } else {
-            detalleHTML += `<div class="line"><span>Base Imponible:</span> <strong>${fmt.format(base)}</strong></div>`;
-        }
 
         const derecho = base * 0.01;
         const descAntig = derecho * antigVal;
         const descServ = (derecho - descAntig) * servVal;
         const final = derecho - descAntig - descServ;
 
-        detalleHTML += `<hr><div class="line"><span>Derecho Base (1%):</span> <strong>${fmt.format(derecho)}</strong></div>
+        document.getElementById('detalleCalculo').innerHTML = `
+            <h4>RESUMEN DE SELECCIÓN:</h4>
+            <div class="line"><span>Tipo de Trámite:</span> <strong>${tramiteText}</strong></div>
+            <div class="line"><span>Tipología Seleccionada:</span> <strong>${tipologiaName} (Coef: ${coef})</strong></div>
+            <div class="line"><span>Superficie Declarada:</span> <strong>${supT} m²</strong></div>
+            <div class="line"><span>Estado de Antigüedad:</span> <strong>${antigName}</strong></div>
+            <div class="line"><span>Situación de Servicios:</span> <strong>${servName}</strong></div>
+            <hr>
+            <div class="line"><span>Monto Imponible Base:</span> <strong>${fmt.format(base)}</strong></div>
+            <div class="line"><span>Derecho de Construcción (1%):</span> <strong>${fmt.format(derecho)}</strong></div>
             <div class="line"><span>(-) Depreciación Antigüedad:</span> <strong>${fmt.format(descAntig)}</strong></div>
-            <div class="line"><span>(-) Descuento Servicios:</span> <strong>${fmt.format(descServ)}</strong></div>`;
+            <div class="line"><span>(-) Descuento por Servicios:</span> <strong>${fmt.format(descServ)}</strong></div>
+        `;
 
-        document.getElementById('detalleCalculo').innerHTML = detalleHTML;
         document.getElementById('totalFinal').innerText = fmt.format(Math.max(0, final));
     }
 
