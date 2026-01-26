@@ -51,6 +51,7 @@
         <div class="grid">
             <div><label>Valor Arancel ($):</label><input type="number" id="configArancel"></div>
             <div><label>Valor Módulo ($):</label><input type="number" id="configModulo"></div>
+            <div><label>Monto Carpeta ($):</label><input type="number" id="configCarpeta"></div>
         </div>
         <button onclick="guardarConfig()" style="margin-top:10px; background: var(--accent); color:white; border:none; padding:8px; cursor:pointer;">Guardar Valores</button>
         <hr>
@@ -291,20 +292,19 @@
 </div>
 
 <script>
-    let config = { arancel: 0, modulo: 0 };
+    let config = { arancel: 0, modulo: 0, carpeta: 0 };
     const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
 
     async function cargarConfig() {
-        try {
-            const response = await fetch('/api/config');
-            config = await response.json();
-            document.getElementById('configArancel').value = config.arancel;
-            document.getElementById('configModulo').value = config.modulo;
-            
-            // EJECUTAR LÓGICA DE INICIO DESPUÉS DE CARGAR CONFIG
-            toggleTramite(); 
-            calcular();
-        } catch (e) { console.error("Error al cargar config"); }
+    try {
+        const response = await fetch('/api/config');
+        config = await response.json();
+        document.getElementById('configArancel').value = config.arancel;
+        document.getElementById('configModulo').value = config.modulo;
+        document.getElementById('configCarpeta').value = config.carpeta; // AGREGADO
+        toggleTramite(); 
+        calcular();
+    } catch (e) { console.error("Error al cargar config"); }
     }
 
     async function accesoAdmin() {
@@ -319,16 +319,18 @@
     }
 
     async function guardarConfig() {
-        const arancel = parseFloat(document.getElementById('configArancel').value);
-        const modulo = parseFloat(document.getElementById('configModulo').value);
-        await fetch('/api/config', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({arancel, modulo})
-        });
-        config = {arancel, modulo};
-        alert("Configuración guardada.");
-        calcular();
+    const arancel = parseFloat(document.getElementById('configArancel').value);
+    const modulo = parseFloat(document.getElementById('configModulo').value);
+    const carpeta = parseFloat(document.getElementById('configCarpeta').value); // AGREGADO
+    
+    await fetch('/api/config', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({arancel, modulo, carpeta}) // MODIFICADO
+    });
+    config = {arancel, modulo, carpeta}; // MODIFICADO
+    alert("Configuración guardada.");
+    calcular();
     }
 
     async function updatePassword() {
@@ -362,72 +364,90 @@
         calcular();
     }
 
-    function calcular() {
-        const t = document.getElementById('tipoTramite');
-        const tramiteText = t.options[t.selectedIndex].text;
-        const prop = document.getElementById('propNombre').value || "---";
+function calcular() {
+    const t = document.getElementById('tipoTramite');
+    const tramiteText = t.options[t.selectedIndex].text;
+    const prop = document.getElementById('propNombre').value || "---";
+    
+    const tipoObraSel = document.getElementById('tipoObra');
+    const tipologiaName = tipoObraSel.options[tipoObraSel.selectedIndex].getAttribute('data-name');
+    const coef = parseFloat(tipoObraSel.value);
+
+    const antigSel = document.getElementById('antiguedad');
+    const antigName = antigSel.options[antigSel.selectedIndex].getAttribute('data-name');
+    const antigVal = parseFloat(antigSel.value);
+
+    const servSel = document.getElementById('servicios');
+    const servName = servSel.options[servSel.selectedIndex].getAttribute('data-name');
+    const servVal = parseFloat(servSel.value);
+    
+    document.getElementById('fechaReporte').innerText = "Fecha: " + new Date().toLocaleDateString();
+
+    let montoDeObra = 0; 
+    let detalleSup = "";
+    let valorReferencia = ""; // <--- NUEVO: Para mostrar Arancel o Módulo en el reporte
+
+    // 1. DETERMINAR EL MONTO DE OBRA Y CAPTURAR VALORES DE REFERENCIA
+    if (t.value === 'DERECHO') {
+        const m2 = parseFloat(document.getElementById('supTotal').value) || 0;
+        montoDeObra = m2 * config.arancel * coef;
+        detalleSup = `${m2} m²`;
+        valorReferencia = `Arancel: ${fmt.format(config.arancel)}`; // <--- NUEVO
+    } else if (t.value === 'ART62' || t.value === 'ART63') {
+        const m140 = parseFloat(document.getElementById('sup140').value) || 0;
+        const m180 = parseFloat(document.getElementById('sup180').value) || 0;
+        montoDeObra = (m140 * (140 * config.modulo) * coef) + (m180 * (180 * config.modulo) * coef);
+        detalleSup = `${m140} m² (Cat. 140) + ${m180} m² (Cat. 180)`;
+        valorReferencia = `Valor Módulo: ${fmt.format(config.modulo)}`; // <--- NUEVO
+    } else {
+        const m2 = parseFloat(document.getElementById('supTotal').value) || 0;
+        let modulos = 120;
+        const unica = document.getElementById('viviendaUnica').value === 'SI';
         
-        const tipoObraSel = document.getElementById('tipoObra');
-        const tipologiaName = tipoObraSel.options[tipoObraSel.selectedIndex].getAttribute('data-name');
-        const coef = parseFloat(tipoObraSel.value);
+        if(t.value === 'ART60') modulos = 54;
+        else if(t.value === 'ART61') modulos = (unica ? 54 : 120);
+        else if(t.value === 'ART64') modulos = 120;
+        else if(t.value === 'ART65') modulos = 150;
 
-        const antigSel = document.getElementById('antiguedad');
-        const antigName = antigSel.options[antigSel.selectedIndex].getAttribute('data-name');
-        const antigVal = parseFloat(antigSel.value);
-
-        const servSel = document.getElementById('servicios');
-        const servName = servSel.options[servSel.selectedIndex].getAttribute('data-name');
-        const servVal = parseFloat(servSel.value);
-        
-        document.getElementById('fechaReporte').innerText = "Fecha: " + new Date().toLocaleDateString();
-
-        let subtotalDerecho = 0; 
-        let detalleSup = "";
-
-        if (t.value === 'DERECHO') {
-            const m2 = parseFloat(document.getElementById('supTotal').value) || 0;
-            const montoObra = m2 * config.arancel * coef;
-            subtotalDerecho = montoObra * 0.01;
-            detalleSup = `${m2} m² x Arancel $${config.arancel.toLocaleString()}`;
-        } else if (t.value === 'ART62' || t.value === 'ART63') {
-            const m140 = parseFloat(document.getElementById('sup140').value) || 0;
-            const m180 = parseFloat(document.getElementById('sup180').value) || 0;
-            subtotalDerecho = (m140 * (140 * config.modulo) * coef) + (m180 * (180 * config.modulo) * coef);
-            detalleSup = `${m140} m² (140 mód) + ${m180} m² (180 mód)`;
-        } else {
-            const m2 = parseFloat(document.getElementById('supTotal').value) || 0;
-            let modulos = 120;
-            const unica = document.getElementById('viviendaUnica').value === 'SI';
-            if(t.value === 'ART60') modulos = 54;
-            else if(t.value === 'ART61') modulos = unica ? 54 : 120;
-            subtotalDerecho = m2 * (modulos * config.modulo) * coef;
-            detalleSup = `${m2} m² x ${modulos} mód.`;
-        }
-
-        const descAntig = subtotalDerecho * antigVal;
-        const descServ = (subtotalDerecho - descAntig) * servVal;
-        const total = subtotalDerecho - descAntig - descServ;
-
-        document.getElementById('datosExpediente').innerHTML = `
-            <div class="line"><span>Propietario / Referencia:</span> <strong>${prop}</strong></div>
-            <div class="line"><span>Trámite seleccionado:</span> <strong>${tramiteText}</strong></div>
-        `;
-
-        document.getElementById('detalleCalculo').innerHTML = `
-            <h4>RESUMEN TÉCNICO:</h4>
-            <div class="line"><span>Tipología:</span> <span>${tipologiaName} (Coef: ${coef})</span></div>
-            <div class="line"><span>Superficie:</span> <span>${detalleSup}</span></div>
-            <div class="line"><span>Cálculo Base:</span> <strong>${fmt.format(subtotalDerecho)}</strong></div>
-            <hr>
-            <h4>DESCUENTOS Y DEPRECIACIONES:</h4>
-            <div class="line"><span>Antigüedad elegida:</span> <span>${antigName}</span></div>
-            <div class="line"><span>(-) Monto depreciación:</span> <span>${fmt.format(descAntig)}</span></div>
-            <div class="line"><span>Servicios elegidos:</span> <span>${servName}</span></div>
-            <div class="line"><span>(-) Monto descuento:</span> <span>${fmt.format(descServ)}</span></div>
-        `;
-
-        document.getElementById('totalFinal').innerText = fmt.format(Math.max(0, total));
+        montoDeObra = m2 * (modulos * config.modulo) * coef;
+        detalleSup = `${m2} m² x ${modulos} mód.`;
+        valorReferencia = `Valor Módulo: ${fmt.format(config.modulo)}`; // <--- NUEVO
     }
+
+    // 2. CÁLCULOS DE TASA Y DESCUENTOS
+    const tasaBase = montoDeObra * 0.01; 
+    const descAntig = tasaBase * antigVal;
+    const descServ = (tasaBase - descAntig) * servVal;
+    const tasaConDescuentos = tasaBase - descAntig - descServ;
+
+    // 3. SUMA FINAL DE CARPETA
+    const montoCarpeta = config.carpeta || 0;
+    const totalFinal = tasaConDescuentos + montoCarpeta;
+
+    // ACTUALIZACIÓN DEL REPORTE VISUAL
+    document.getElementById('datosExpediente').innerHTML = `
+        <div class="line"><span>Propietario / Referencia:</span> <strong>${prop}</strong></div>
+        <div class="line"><span>Trámite seleccionado:</span> <strong>${tramiteText}</strong></div>
+        <div class="line"><span>Valor de Referencia:</span> <strong>${valorReferencia}</strong></div> `;
+
+    document.getElementById('detalleCalculo').innerHTML = `
+        <h4>RESUMEN TÉCNICO:</h4>
+        <div class="line"><span>Tipología:</span> <span>${tipologiaName} (Coef: ${coef})</span></div>
+        <div class="line"><span>Superficie/Unidades:</span> <span>${detalleSup}</span></div>
+        <div class="line"><span>Monto de Obra Estimado:</span> <span>${fmt.format(montoDeObra)}</span></div>
+        <div class="line"><span>Tasa Base (1%):</span> <span>${fmt.format(tasaBase)}</span></div>
+        <hr>
+        <h4>DESCUENTOS Y DEPRECIACIONES:</h4>
+        <div class="line"><span>Antigüedad (${antigName}):</span> <span>- ${fmt.format(descAntig)}</span></div>
+        <div class="line"><span>Servicios (${servName}):</span> <span>- ${fmt.format(descServ)}</span></div>
+        <div class="line"><span>Tasa neta resultante:</span> <strong>${fmt.format(tasaConDescuentos)}</strong></div>
+        <hr>
+        <h4>ADICIONALES:</h4>
+        <div class="line"><span>Monto de Carpeta (Cargo Fijo):</span> <strong>+ ${fmt.format(montoCarpeta)}</strong></div>
+    `;
+
+    document.getElementById('totalFinal').innerText = fmt.format(Math.max(0, totalFinal));
+}
 
     function cerrarAdmin() { document.getElementById('panelConfig').classList.add('hidden'); }
     

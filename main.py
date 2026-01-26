@@ -10,6 +10,7 @@ app = FastAPI()
 class ConfigObra(BaseModel):
     arancel: float
     modulo: float
+    carpeta: float
 
 class ChangePass(BaseModel):
     old_pass: str
@@ -25,7 +26,8 @@ def init_db():
             CREATE TABLE IF NOT EXISTS configuracion (
                 id INTEGER PRIMARY KEY, 
                 arancel REAL, 
-                modulo REAL
+                modulo REAL,
+                carpeta REAL
             )
         """)
         # Tabla de seguridad
@@ -36,7 +38,7 @@ def init_db():
             )
         """)
         # Valores iniciales si no existen
-        conn.execute("INSERT OR IGNORE INTO configuracion (id, arancel, modulo) VALUES (1, 1320000, 1000)")
+        conn.execute("INSERT OR IGNORE INTO configuracion (id, arancel, modulo, carpeta) VALUES (1, 1320000, 1000, 7733)")
         conn.execute("INSERT OR IGNORE INTO seguridad (id, password) VALUES (1, '9dejulio')")
         conn.commit()
 
@@ -48,14 +50,14 @@ init_db()
 def get_config():
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
-        row = conn.execute("SELECT arancel, modulo FROM configuracion WHERE id = 1").fetchone()
+        row = conn.execute("SELECT arancel, modulo, carpeta FROM configuracion WHERE id = 1").fetchone()
         return dict(row)
 
 @app.post("/api/config")
 def update_config(config: ConfigObra):
     with sqlite3.connect(DB_PATH) as conn:
-        conn.execute("UPDATE configuracion SET arancel = ?, modulo = ? WHERE id = 1", 
-                     (config.arancel, config.modulo))
+        conn.execute("UPDATE configuracion SET arancel = ?, modulo = ?, carpeta = ? WHERE id = 1", 
+                     (config.arancel, config.modulo, config.carpeta))
         return {"status": "ok"}
 
 @app.post("/api/login")
