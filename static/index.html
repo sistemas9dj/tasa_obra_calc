@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Calculador Municipal - 9 de Julio</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <style>
         :root { --primary: #1a3a5a; --accent: #27ae60; --bg: #f4f7f6; --admin-color: #c0392b; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
@@ -28,14 +29,41 @@
         .ord-link { display: block; margin-top: 10px; color: var(--primary); text-decoration: underline; font-weight: bold; }
         
         .btn-print { background: #1a3a5a; color: white; padding: 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; font-size: 1.1em; }
+        
+        .btn-add-obra { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%; }
+        .btn-add-obra:hover { background: #1e8449; }
+        .btn-delete { background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.85em; }
+        .btn-delete:hover { background: #c0392b; }
+        
+        .obras-lista { margin-top: 30px; padding: 20px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; }
+        .obra-row { background: white; padding: 12px; margin: 8px 0; border-left: 4px solid var(--accent); border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .obra-info { flex: 1; }
+        .obra-info p { margin: 3px 0; font-size: 0.9em; }
+        .obra-total { font-weight: bold; color: var(--primary); font-size: 1.1em; }
 
         @media print {
-            @page { margin: 0.5cm; size: auto; }
-            body { margin: 0; padding: 1cm; background: white; }
-            .no-print, .admin-btn, .admin-panel, .grid, .btn-print, h1 { display: none !important; }
-            .container { box-shadow: none; max-width: 100%; border: none; padding: 0; margin: 0; }
-            .report-area { border: none; margin-top: 0; padding: 0; }
-            .total-box { background: #fff !important; }
+            @page { margin: 0.5cm; size: A4; }
+            body { margin: 0; padding: 0.5cm; background: white; font-size: 11pt; }
+            .no-print, .admin-btn, .admin-panel, .grid, .btn-print, h1, .obras-lista { display: none !important; }
+            .container { box-shadow: none; max-width: 100%; border: none; padding: 0.5cm; margin: 0; }
+            .report-area { border: none; margin-top: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5cm; }
+            .report-header { margin-bottom: 0.5cm; grid-column: 1 / -1; }
+            .report-header h2 { margin: 0; font-size: 1.1em; }
+            .report-header h3 { margin: 0.2cm 0; font-size: 0.95em; }
+            .report-header p { margin: 0.1cm 0; font-size: 0.9em; }
+            
+            /* Estilos para las obras en grid */
+            .propietario-section { grid-column: 1 / -1; break-inside: avoid; margin-bottom: 0.3cm; padding: 0.3cm; border: 1px solid #000; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4cm; }
+            .propietario-section h2 { grid-column: 1 / -1; margin: 0 0 0.2cm 0; font-size: 0.9em; border-bottom: 0.5px solid #000; padding-bottom: 0.1cm; }
+            .obra-detalle { break-inside: avoid; padding: 0.25cm; background: white; border: 0.5px solid #ccc; }
+            .obra-detalle h4 { margin: 0 0 0.1cm 0; font-size: 0.75em; }
+            .subtotal-propietario { grid-column: 1 / -1; margin: 0.2cm 0 0; padding: 0.2cm; font-size: 0.85em; break-inside: avoid; }
+            .total-general { grid-column: 1 / -1; margin-top: 0.5cm; padding: 0.4cm; page-break-inside: avoid; }
+            .disclaimer { grid-column: 1 / -1; margin-top: 0.4cm; font-size: 0.8em; }
+            
+            /* Líneas más compactas */
+            .line { padding: 0.1cm 0; font-size: 0.75em; }
+            hr { margin: 0.1cm 0; }
         }
     </style>
 </head>
@@ -44,6 +72,10 @@
 <div class="container">
     <div class="no-print" style="text-align: right; margin-bottom: 10px;">
         <button id="btnAdminMode" class="admin-btn" onclick="accesoAdmin()">Acceso Admin</button>
+    </div>
+
+    <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 6px; margin-bottom: 15px; color: #856404; font-size: 0.95em; display: none;" class="no-print">
+        <strong>⚠️ Importante:</strong> Los datos de este simulador no se guardan. Al recargar la página o cerrar el navegador, se perderán todas las obras.
     </div>
 
     <div id="panelConfig" class="admin-panel hidden no-print">
@@ -64,14 +96,18 @@
         <button onclick="cerrarAdmin()" style="margin-top:10px; float:right;">Cerrar</button>
     </div>
 
+    <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+        <img src="/images/logo.jpg" alt="Logo Municipio" style="max-height: 80px; margin-bottom: 10px;">
+    </div>
+
     <h1 class="no-print">Simulador De Liquidación de Derechos de Construcción</h1>
 
     <div class="grid no-print">
         <div class="section">
-            <label>Propietario / Referencia:</label>
-            <input type="text" id="propNombre" placeholder="Nombre completo" oninput="calcular()">
+            <h3 style="margin-top: 0;">Propietario / Referencia</h3>
+            <input type="text" id="propNombre" placeholder="Nombre completo">
 
-            <label>Tipo de Trámite:</label>
+            <h3 style="margin-top: 20px;">Agregar Nueva Obra</h3>
             <select id="tipoTramite" onchange="toggleTramite()">
                 <option value="DERECHO">Art. 33: Obra Nueva (A Construir)</option>
                 <option value="ART60">Art. 60: Empadronamiento Reglamentario (54 mód)</option>
@@ -101,6 +137,8 @@
                     <option value="SI">Sí</option>
                 </select>
             </div>
+
+            <button class="btn-add-obra" onclick="agregarObra()">➕ AGREGAR ESTA OBRA</button>
         </div>
 
         <div class="section">
@@ -288,23 +326,312 @@
         </div>
     </div>
 
-    <button class="btn-print no-print" onclick="window.print()">🖨️ IMPRIMIR REPORTE</button>
+    <button class="btn-print no-print" onclick="window.print()" style="margin-right: 10px;">🖨️ IMPRIMIR REPORTE</button>
+    <button class="btn-print no-print" onclick="limpiarTodo()" style="background: #e74c3c;">🗑️ LIMPIAR TODO</button>
 </div>
 
 <script>
     let config = { arancel: 0, modulo: 0, carpeta: 0 };
+    let obras = [];
     const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
 
     async function cargarConfig() {
-    try {
-        const response = await fetch('/api/config');
-        config = await response.json();
-        document.getElementById('configArancel').value = config.arancel;
-        document.getElementById('configModulo').value = config.modulo;
-        document.getElementById('configCarpeta').value = config.carpeta; // AGREGADO
-        toggleTramite(); 
-        calcular();
-    } catch (e) { console.error("Error al cargar config"); }
+        try {
+            const response = await fetch('/api/config');
+            config = await response.json();
+            document.getElementById('configArancel').value = config.arancel;
+            document.getElementById('configModulo').value = config.modulo;
+            document.getElementById('configCarpeta').value = config.carpeta;
+            toggleTramite();
+            cargarObras();
+        } catch (e) { console.error("Error al cargar config"); }
+    }
+
+    function cargarObras() {
+        // Los datos solo existen en memoria durante la sesión actual
+        actualizarListaObras();
+        actualizarTotalObras();
+    }
+
+    function guardarObrasLocal() {
+        // Los datos se mantienen solo en memoria (no en localStorage)
+        // Se pierden automáticamente al recargar o cerrar
+    }
+
+    function calcularObra() {
+        const t = document.getElementById('tipoTramite');
+        const tipoObraSel = document.getElementById('tipoObra');
+        const coef = parseFloat(tipoObraSel.value);
+        const antigVal = parseFloat(document.getElementById('antiguedad').value);
+        const servVal = parseFloat(document.getElementById('servicios').value);
+
+        let montoDeObra = 0;
+
+        if (t.value === 'DERECHO') {
+            const m2 = parseFloat(document.getElementById('supTotal').value) || 0;
+            montoDeObra = m2 * config.arancel * coef;
+        } else if (t.value === 'ART62' || t.value === 'ART63') {
+            const m140 = parseFloat(document.getElementById('sup140').value) || 0;
+            const m180 = parseFloat(document.getElementById('sup180').value) || 0;
+            montoDeObra = (m140 * (140 * config.modulo) * coef) + (m180 * (180 * config.modulo) * coef);
+        } else {
+            const m2 = parseFloat(document.getElementById('supTotal').value) || 0;
+            let modulos = 120;
+            const unica = document.getElementById('viviendaUnica').value === 'SI';
+            if(t.value === 'ART60') modulos = 54;
+            else if(t.value === 'ART61') modulos = (unica ? 54 : 120);
+            else if(t.value === 'ART64') modulos = 120;
+            else if(t.value === 'ART65') modulos = 150;
+            montoDeObra = m2 * (modulos * config.modulo) * coef;
+        }
+
+        const tasaBase = montoDeObra * 0.01;
+        const descAntig = tasaBase * antigVal;
+        const descServ = (tasaBase - descAntig) * servVal;
+        const tasaConDescuentos = tasaBase - descAntig - descServ;
+        const totalFinal = tasaConDescuentos + config.carpeta;
+
+        return {
+            montoDeObra: montoDeObra,
+            tasaBase: tasaBase,
+            descAntig: descAntig,
+            descServ: descServ,
+            tasaConDescuentos: tasaConDescuentos,
+            total: totalFinal
+        };
+    }
+
+    function agregarObra() {
+        const prop = document.getElementById('propNombre').value;
+        if (!prop) { alert("Ingresá el propietario"); return; }
+
+        const t = document.getElementById('tipoTramite');
+        const tramiteText = t.options[t.selectedIndex].text;
+        const tipoObraSel = document.getElementById('tipoObra');
+        const tipologiaName = tipoObraSel.options[tipoObraSel.selectedIndex].getAttribute('data-name');
+
+        // Capturar texto de opciones seleccionadas
+        const antiguedadSel = document.getElementById('antiguedad');
+        const antiguedadText = antiguedadSel.options[antiguedadSel.selectedIndex].getAttribute('data-name');
+        const serviciosSel = document.getElementById('servicios');
+        const serviciosText = serviciosSel.options[serviciosSel.selectedIndex].getAttribute('data-name');
+
+        const calculo = calcularObra();
+
+        const obra = {
+            id: Date.now(), // ID temporal único
+            propietario: prop,
+            tipo_tramite: tramiteText,
+            tipo_obra: tipologiaName,
+            superficie: parseFloat(document.getElementById('supTotal').value) || 0,
+            factor: parseFloat(tipoObraSel.value),
+            monto_obra: calculo.montoDeObra,
+            tasa_base: calculo.tasaBase,
+            desc_antiguedad: calculo.descAntig,
+            desc_antiguedad_text: antiguedadText,
+            desc_servicios: calculo.descServ,
+            desc_servicios_text: serviciosText,
+            tasa_neta: calculo.tasaConDescuentos,
+            carpeta: config.carpeta,
+            total: calculo.total
+        };
+
+        obras.push(obra);
+        guardarObrasLocal();
+        
+        // Limpiar formulario
+        document.getElementById('tipoTramite').value = 'DERECHO';
+        document.getElementById('supTotal').value = '0';
+        document.getElementById('sup140').value = '0';
+        document.getElementById('sup180').value = '0';
+        document.getElementById('viviendaUnica').value = 'NO';
+        document.getElementById('tipoObra').selectedIndex = 4;
+        document.getElementById('antiguedad').value = '0';
+        document.getElementById('servicios').value = '0';
+        toggleTramite();
+        
+        actualizarListaObras();
+        actualizarTotalObras();
+    }
+
+    function eliminarObra(obra_id) {
+        if (!confirm("¿Eliminar esta obra?")) return;
+        obras = obras.filter(o => o.id !== obra_id);
+        guardarObrasLocal();
+        actualizarListaObras();
+        actualizarTotalObras();
+    }
+
+    function limpiarTodo() {
+        if (!confirm("¿Limpiar todas las obras? (Esta acción no se puede deshacer)")) return;
+        obras = [];
+        document.getElementById('propNombre').value = '';
+        actualizarListaObras();
+        actualizarTotalObras();
+    }
+
+    function actualizarListaObras() {
+        let html = '<h3>📋 Obras Agregadas por Propietario</h3>';
+        if (obras.length === 0) {
+            html += '<p style="color: #888; text-align: center;">Aún no hay obras agregadas</p>';
+        } else {
+            // Agrupar obras por propietario
+            const porPropietario = {};
+            obras.forEach(obra => {
+                if (!porPropietario[obra.propietario]) {
+                    porPropietario[obra.propietario] = [];
+                }
+                porPropietario[obra.propietario].push(obra);
+            });
+
+            // Mostrar por propietario
+            Object.keys(porPropietario).forEach(propietario => {
+                const obrasDelProp = porPropietario[propietario];
+                const subtotal = obrasDelProp.reduce((sum, o) => sum + o.total, 0);
+                
+                html += `<div style="margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px; border-left: 5px solid var(--primary);">
+                    <h4 style="margin-top: 0; color: var(--primary);">${propietario}</h4>`;
+                
+                obrasDelProp.forEach(obra => {
+                    html += `
+                    <div class="obra-row" style="background: white; margin: 8px 0;">
+                        <div class="obra-info">
+                            <p style="margin: 3px 0; font-size: 0.9em;">${obra.tipo_tramite}</p>
+                            <p style="font-size: 0.8em; color: #666; margin: 2px 0;">${obra.tipo_obra}</p>
+                            <p style="font-size: 0.8em; color: #666; margin: 2px 0;">${obra.superficie} m² | Coef: ${obra.factor}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p class="obra-total" style="margin: 0 0 5px 0;">${fmt.format(obra.total)}</p>
+                            <button class="btn-delete" onclick="eliminarObra(${obra.id})">🗑️ Eliminar</button>
+                        </div>
+                    </div>`;
+                });
+                
+                html += `</div>`;
+            });
+        }
+        const container = document.querySelector('.obras-lista') || document.createElement('div');
+        container.className = 'obras-lista no-print';
+        container.innerHTML = html;
+        if (!document.querySelector('.obras-lista')) {
+            document.querySelector('.section:last-of-type').parentElement.appendChild(container);
+        }
+    }
+
+    async function actualizarTotalObras() {
+        try {
+            // Calcular total desde el array de obras en memoria
+            const totalGral = obras.reduce((sum, obra) => sum + obra.total, 0);
+
+            const reporte = document.getElementById('reporte');
+            let html = `
+            <div class="report-header" style="display: grid; grid-template-columns: auto 1fr; gap: 1cm; align-items: center; grid-column: 1 / -1; margin-bottom: 0.5cm;">
+                <div style="text-align: center;">
+                    <img src="/images/logo.jpg" alt="Logo" style="max-width: 120px; max-height: 120px;">
+                </div>
+                <div style="text-align: right;">
+                    <h2 style="margin:0; font-size:1.1em;">MUNICIPALIDAD DE 9 DE JULIO</h2>
+                    <h3 style="margin:0.15cm 0; color: #333; font-size:0.9em;">Simulador De Liquidación de Derechos de Construcción</h3>
+                    <p id="fechaReporte" style="margin:0; font-size:0.8em;">Fecha: ${new Date().toLocaleDateString()}</p>
+                </div>
+            </div>
+            `;
+
+            if (obras.length === 0) {
+                html += '<p style="text-align: center; color: #888; padding: 20px;">No hay obras para mostrar</p>';
+            } else {
+                // Mostrar todas las obras sin agrupar por propietario
+                const propietario = obras.length > 0 ? obras[0].propietario : '';
+                const obrasPorPagina = 6;
+                
+                // Función para generar el header
+                const generarHeader = () => `
+                    <div class="report-header" style="display: grid; grid-template-columns: auto 1fr; gap: 1cm; align-items: center; grid-column: 1 / -1; margin-bottom: 0.5cm;">
+                        <div style="text-align: center;">
+                            <img src="/images/logo.jpg" alt="Logo" style="max-width: 120px; max-height: 120px;">
+                        </div>
+                        <div style="text-align: right;">
+                            <h2 style="margin:0; font-size:1.1em;">MUNICIPALIDAD DE 9 DE JULIO</h2>
+                            <h3 style="margin:0.15cm 0; color: #333; font-size:0.9em;">Simulador De Liquidación de Derechos de Construcción</h3>
+                            <p style="margin:0; font-size:0.8em;">Fecha: ${new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                `;
+                
+                html += `<div style="grid-column: 1 / -1; margin-bottom: 0.3cm; padding: 0.3cm; border: 1px solid var(--primary); background: #f9f9f9; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4cm;">
+                    <h2 style="grid-column: 1 / -1; margin: 0 0 0.2cm 0; font-size: 0.9em; border-bottom: 0.5px solid var(--primary); padding-bottom: 0.1cm; color: var(--primary);">
+                        Propietario: ${propietario}
+                    </h2>`;
+                
+                obras.forEach((obra, idx) => {
+                    // Cada 6 obras, cerrar el div, hacer salto de página, repetir header y abrir nuevo div
+                    if (idx > 0 && idx % obrasPorPagina === 0) {
+                        html += `</div>`;
+                        html += `<div style="grid-column: 1 / -1; page-break-before: always;"></div>`;
+                        html += generarHeader();
+                        html += `<div style="grid-column: 1 / -1; margin-bottom: 0.3cm; padding: 0.3cm; border: 1px solid var(--primary); background: #f9f9f9; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4cm;">
+                            <h2 style="grid-column: 1 / -1; margin: 0 0 0.2cm 0; font-size: 0.9em; border-bottom: 0.5px solid var(--primary); padding-bottom: 0.1cm; color: var(--primary);">
+                                Propietario: ${propietario} (continuación)
+                            </h2>`;
+                    }
+                    
+                    html += `
+                    <div class="obra-detalle" style="padding: 0.25cm; background: white; border: 0.5px solid #ddd;">
+                        <h4 style="margin: 0 0 0.1cm 0; font-size: 0.75em; color: var(--primary);">Obra ${idx + 1}</h4>
+                        
+                        <div style="margin: 0.1cm 0; font-size: 0.7em;">
+                            <div class="line"><span>Trámite:</span> <strong style="font-size:0.8em;">${obra.tipo_tramite}</strong></div>
+                            <div class="line"><span>Tipología:</span> <strong style="font-size:0.75em;">${obra.tipo_obra.substring(0, 25)}</strong></div>
+                            <div class="line"><span>Sup:</span> <strong>${obra.superficie}m²</strong> | <span>Coef:</span> <strong>${obra.factor}</strong></div>
+                        </div>
+                        
+                        <hr style="margin: 0.1cm 0; border: none; border-top: 0.5px solid #ddd;">
+                        <div style="font-size: 0.7em;">
+                            <div class="line"><span>Monto Obra:</span> <span style="float:right; font-size:0.75em;">${fmt.format(obra.monto_obra)}</span></div>
+                            <div class="line"><span>Tasa Base:</span> <span style="float:right; font-size:0.75em;">${fmt.format(obra.tasa_base)}</span></div>
+                            <div class="line"><span>Desc.Antig:</span> <span style="float:right; font-size:0.75em;">${obra.desc_antiguedad_text || ''} -${fmt.format(obra.desc_antiguedad)}</span></div>
+                            <div class="line"><span>Desc.Serv:</span> <span style="float:right; font-size:0.75em;">${obra.desc_servicios_text || ''} -${fmt.format(obra.desc_servicios)}</span></div>
+                            <div class="line"><span>Tasa Neta:</span> <span style="float:right; font-size:0.75em;"><strong>${fmt.format(obra.tasa_neta)}</strong></span></div>
+                            <div class="line"><span>Carpeta:</span> <span style="float:right; font-size:0.75em;"><strong>${fmt.format(obra.carpeta)}</strong></span></div>
+                        </div>
+                        
+                        <hr style="margin: 0.1cm 0; border: none; border-top: 0.5px solid #ddd;">
+                        <div style="background: #e8f5e9; padding: 0.15cm; text-align: right; font-weight: bold; font-size: 0.75em;">
+                            TOTAL: ${fmt.format(obra.total)}
+                        </div>
+                    </div>`;
+                });
+                
+                html += `</div>`;
+                
+                html += `
+                <div class="total-general" style="margin-top: 0.5cm; border: 2px solid var(--primary); padding: 0.4cm; background: var(--primary); color: white; display: grid; grid-template-columns: auto 2px 1fr 2px auto; gap: 0.5cm; align-items: center;">
+                    <div style="text-align: left; font-size: 0.7em;">
+                        <div style="margin: 0.1cm 0;"><strong>Arancel:</strong> ${fmt.format(config.arancel)}</div>
+                        <div style="margin: 0.1cm 0;"><strong>Módulo:</strong> ${fmt.format(config.modulo)}</div>
+                        <div style="margin: 0.1cm 0;"><strong>Carpeta:</strong> ${fmt.format(config.carpeta)}</div>
+                    </div>
+                    <div style="height: 100%; background: white; opacity: 0.3;"></div>
+                    <div style="text-align: justify; font-size: 0.55em; line-height: 1.3; padding: 0 0.2cm;">
+                        Este <strong>simulador</strong> tiene carácter orientativo y no constituye una liquidación oficial. 
+                        Los valores obtenidos son estimativos y podrán variar una vez analizado el expediente por la Municipalidad, 
+                        conforme al <strong>Código Urbano, Código de Edificación y normativa vigente.</strong> 
+                        El cálculo definitivo será determinado exclusivamente por el Municipio y no posee validez legal hasta su aprobación administrativa. 
+                        <a href="https://www.9dejulio.gov.ar/pdf/ordenanzas/ORDENANZA_IMPOSITIVA_EJERCICIO_2026.pdf" target="_blank" style="color: white; text-decoration: underline;">Ver Ordenanza Impositiva Ejercicio 2026</a>
+                    </div>
+                    <div style="height: 100%; background: white; opacity: 0.3;"></div>
+                    <div style="text-align: right;">
+                        <h2 style="margin: 0; color: white; font-size: 0.95em;">TOTAL GENERAL A LIQUIDAR</h2>
+                        <div style="font-size: 1.5em; font-weight: bold; margin-top: 0.2cm;">
+                            ${fmt.format(totalGral)}
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+
+            reporte.innerHTML = html;
+        } catch (e) { console.error("Error al actualizar total", e); }
     }
 
     async function accesoAdmin() {
@@ -319,18 +646,18 @@
     }
 
     async function guardarConfig() {
-    const arancel = parseFloat(document.getElementById('configArancel').value);
-    const modulo = parseFloat(document.getElementById('configModulo').value);
-    const carpeta = parseFloat(document.getElementById('configCarpeta').value); // AGREGADO
-    
-    await fetch('/api/config', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({arancel, modulo, carpeta}) // MODIFICADO
-    });
-    config = {arancel, modulo, carpeta}; // MODIFICADO
-    alert("Configuración guardada.");
-    calcular();
+        const arancel = parseFloat(document.getElementById('configArancel').value);
+        const modulo = parseFloat(document.getElementById('configModulo').value);
+        const carpeta = parseFloat(document.getElementById('configCarpeta').value);
+        
+        await fetch('/api/config', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({arancel, modulo, carpeta})
+        });
+        config = {arancel, modulo, carpeta};
+        alert("Configuración guardada.");
+        cargarObras();
     }
 
     async function updatePassword() {
@@ -349,7 +676,6 @@
         const t = document.getElementById('tipoTramite').value;
         const anti = document.getElementById('antiguedad');
         
-        // Deshabilitar antigüedad si es Obra Nueva
         if (t === 'DERECHO') {
             anti.value = "0";
             anti.disabled = true;
@@ -361,97 +687,10 @@
         document.getElementById('divSupNormal').className = isExceso ? 'hidden' : '';
         document.getElementById('divSupExcesos').className = isExceso ? '' : 'hidden';
         document.getElementById('divViviendaUnica').className = (['ART61', 'ART62'].includes(t)) ? '' : 'hidden';
-        calcular();
     }
-
-function calcular() {
-    const t = document.getElementById('tipoTramite');
-    const tramiteText = t.options[t.selectedIndex].text;
-    const prop = document.getElementById('propNombre').value || "---";
-    
-    const tipoObraSel = document.getElementById('tipoObra');
-    const tipologiaName = tipoObraSel.options[tipoObraSel.selectedIndex].getAttribute('data-name');
-    const coef = parseFloat(tipoObraSel.value);
-
-    const antigSel = document.getElementById('antiguedad');
-    const antigName = antigSel.options[antigSel.selectedIndex].getAttribute('data-name');
-    const antigVal = parseFloat(antigSel.value);
-
-    const servSel = document.getElementById('servicios');
-    const servName = servSel.options[servSel.selectedIndex].getAttribute('data-name');
-    const servVal = parseFloat(servSel.value);
-    
-    document.getElementById('fechaReporte').innerText = "Fecha: " + new Date().toLocaleDateString();
-
-    let montoDeObra = 0; 
-    let detalleSup = "";
-    let valorReferencia = ""; // <--- NUEVO: Para mostrar Arancel o Módulo en el reporte
-
-    // 1. DETERMINAR EL MONTO DE OBRA Y CAPTURAR VALORES DE REFERENCIA
-    if (t.value === 'DERECHO') {
-        const m2 = parseFloat(document.getElementById('supTotal').value) || 0;
-        montoDeObra = m2 * config.arancel * coef;
-        detalleSup = `${m2} m²`;
-        valorReferencia = `Arancel: ${fmt.format(config.arancel)}`; // <--- NUEVO
-    } else if (t.value === 'ART62' || t.value === 'ART63') {
-        const m140 = parseFloat(document.getElementById('sup140').value) || 0;
-        const m180 = parseFloat(document.getElementById('sup180').value) || 0;
-        montoDeObra = (m140 * (140 * config.modulo) * coef) + (m180 * (180 * config.modulo) * coef);
-        detalleSup = `${m140} m² (Cat. 140) + ${m180} m² (Cat. 180)`;
-        valorReferencia = `Valor Módulo: ${fmt.format(config.modulo)}`; // <--- NUEVO
-    } else {
-        const m2 = parseFloat(document.getElementById('supTotal').value) || 0;
-        let modulos = 120;
-        const unica = document.getElementById('viviendaUnica').value === 'SI';
-        
-        if(t.value === 'ART60') modulos = 54;
-        else if(t.value === 'ART61') modulos = (unica ? 54 : 120);
-        else if(t.value === 'ART64') modulos = 120;
-        else if(t.value === 'ART65') modulos = 150;
-
-        montoDeObra = m2 * (modulos * config.modulo) * coef;
-        detalleSup = `${m2} m² x ${modulos} mód.`;
-        valorReferencia = `Valor Módulo: ${fmt.format(config.modulo)}`; // <--- NUEVO
-    }
-
-    // 2. CÁLCULOS DE TASA Y DESCUENTOS
-    const tasaBase = montoDeObra * 0.01; 
-    const descAntig = tasaBase * antigVal;
-    const descServ = (tasaBase - descAntig) * servVal;
-    const tasaConDescuentos = tasaBase - descAntig - descServ;
-
-    // 3. SUMA FINAL DE CARPETA
-    const montoCarpeta = config.carpeta || 0;
-    const totalFinal = tasaConDescuentos + montoCarpeta;
-
-    // ACTUALIZACIÓN DEL REPORTE VISUAL
-    document.getElementById('datosExpediente').innerHTML = `
-        <div class="line"><span>Propietario / Referencia:</span> <strong>${prop}</strong></div>
-        <div class="line"><span>Trámite seleccionado:</span> <strong>${tramiteText}</strong></div>
-        <div class="line"><span>Valor de Referencia:</span> <strong>${valorReferencia}</strong></div> `;
-
-    document.getElementById('detalleCalculo').innerHTML = `
-        <h4>RESUMEN TÉCNICO:</h4>
-        <div class="line"><span>Tipología:</span> <span>${tipologiaName} (Coef: ${coef})</span></div>
-        <div class="line"><span>Superficie/Unidades:</span> <span>${detalleSup}</span></div>
-        <div class="line"><span>Monto de Obra Estimado:</span> <span>${fmt.format(montoDeObra)}</span></div>
-        <div class="line"><span>Tasa Base (1%):</span> <span>${fmt.format(tasaBase)}</span></div>
-        <hr>
-        <h4>DESCUENTOS Y DEPRECIACIONES:</h4>
-        <div class="line"><span>Antigüedad (${antigName}):</span> <span>- ${fmt.format(descAntig)}</span></div>
-        <div class="line"><span>Servicios (${servName}):</span> <span>- ${fmt.format(descServ)}</span></div>
-        <div class="line"><span>Tasa neta resultante:</span> <strong>${fmt.format(tasaConDescuentos)}</strong></div>
-        <hr>
-        <h4>ADICIONALES:</h4>
-        <div class="line"><span>Monto de Carpeta (Cargo Fijo):</span> <strong>+ ${fmt.format(montoCarpeta)}</strong></div>
-    `;
-
-    document.getElementById('totalFinal').innerText = fmt.format(Math.max(0, totalFinal));
-}
 
     function cerrarAdmin() { document.getElementById('panelConfig').classList.add('hidden'); }
     
-    // Al cargar el documento, iniciamos la configuración
     window.onload = cargarConfig;
 </script>
 </body>
