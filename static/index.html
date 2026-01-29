@@ -352,7 +352,7 @@
 
     async function cargarConfig() {
         try {
-            const response = await fetch('/tasa_obra_calc/api/config');
+            const response = await fetch('/tasa_obra_calc/config');
             config = await response.json();
             document.getElementById('configArancel').value = config.arancel;
             document.getElementById('configModulo').value = config.modulo;
@@ -662,7 +662,7 @@
 
     async function accesoAdmin() {
         const p = prompt("Contraseña:");
-        const res = await fetch('/tasa_obra_calc/api/login', {
+        const res = await fetch('/tasa_obra_calc/login', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({password: p})
@@ -676,7 +676,7 @@
         const modulo = parseFloat(document.getElementById('configModulo').value);
         const carpeta = parseFloat(document.getElementById('configCarpeta').value);
         
-        await fetch('/api/config', {
+        await fetch('/config', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({arancel, modulo, carpeta})
@@ -689,7 +689,7 @@
     async function updatePassword() {
         const oldP = document.getElementById('oldPass').value;
         const newP = document.getElementById('newPass').value;
-        const res = await fetch('tasa_obra_calc/api/change-password', {
+        const res = await fetch('tasa_obra_calc/change-password', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({old_pass: oldP, new_pass: newP})
