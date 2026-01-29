@@ -150,8 +150,6 @@
                     <option value="SI">Sí</option>
                 </select>
             </div>
-
-            <button class="btn-add-obra" onclick="agregarObra()">➕ AGREGAR ESTA OBRA</button>
         </div>
 
         <div class="section">
@@ -312,6 +310,8 @@
                 
                 <option value="0.70" data-name="Con un servicio o sin servicios (70%)">Con un servicio o sin servicios (70% desc)</option>
             </select>
+
+            <button class="btn-add-obra" onclick="agregarObra()">➕ AGREGAR ESTA OBRA</button>
         </div>
     </div>
 
@@ -446,7 +446,7 @@
             desc_servicios_text: serviciosText,
             tasa_neta: calculo.tasaConDescuentos,
             carpeta: config.carpeta,
-            total: calculo.total
+            total: calculo.tasaConDescuentos
         };
 
         obras.push(obra);
@@ -484,9 +484,9 @@
     }
 
     function actualizarListaObras() {
-        let html = '<h3>📋 Obras Agregadas por Propietario</h3>';
+        let html = '<h3>📋 Items Agregados por Propietario</h3>';
         if (obras.length === 0) {
-            html += '<p style="color: #888; text-align: center;">Aún no hay obras agregadas</p>';
+            html += '<p style="color: #888; text-align: center;">Aún no hay items agregados</p>';
         } else {
             // Agrupar obras por propietario
             const porPropietario = {};
@@ -534,7 +534,9 @@
     async function actualizarTotalObras() {
         try {
             // Calcular total desde el array de obras en memoria
-            const totalGral = obras.reduce((sum, obra) => sum + obra.total, 0);
+            // Sumar todas las tasas netas + carpeta una sola vez
+            const totalObras = obras.reduce((sum, obra) => sum + obra.total, 0);
+            const totalGral = totalObras + (obras.length > 0 ? config.carpeta : 0);
 
             const reporte = document.getElementById('reporte');
             let html = `
@@ -590,26 +592,25 @@
                     
                     html += `
                     <div class="obra-detalle" style="padding: 0.25cm; background: white; border: 0.5px solid #ddd;">
-                        <h4 style="margin: 0 0 0.1cm 0; font-size: 0.75em; color: var(--primary);">Obra ${idx + 1}</h4>
+                        <h4 style="margin: 0 0 0.1cm 0; font-size: 0.9em; color: var(--primary);">Item ${idx + 1}</h4>
                         
-                        <div style="margin: 0.1cm 0; font-size: 0.7em;">
-                            <div class="line"><span>Trámite:</span> <strong style="font-size:0.8em;">${obra.tipo_tramite}</strong></div>
-                            <div class="line"><span>Tipología:</span> <strong style="font-size:0.75em;">${obra.tipo_obra.substring(0, 25)}</strong></div>
+                        <div style="margin: 0.1cm 0; font-size: 0.85em;">
+                            <div class="line"><span>Trámite:</span> <strong style="font-size:1em;">${obra.tipo_tramite}</strong></div>
+                            <div class="line"><span>Tipología:</span> <strong style="font-size:0.95em;">${obra.tipo_obra.substring(0, 25)}</strong></div>
                             <div class="line"><span>Sup:</span> <strong>${obra.superficie}m²</strong> | <span>Coef:</span> <strong>${obra.factor}</strong></div>
                         </div>
                         
                         <hr style="margin: 0.1cm 0; border: none; border-top: 0.5px solid #ddd;">
-                        <div style="font-size: 0.7em;">
-                            <div class="line"><span>Monto Obra:</span> <span style="float:right; font-size:0.75em;">${fmt.format(obra.monto_obra)}</span></div>
-                            <div class="line"><span>Tasa Base:</span> <span style="float:right; font-size:0.75em;">${fmt.format(obra.tasa_base)}</span></div>
-                            <div class="line"><span>Desc.Antig:</span> <span style="float:right; font-size:0.75em;">${obra.desc_antiguedad_text || ''} -${fmt.format(obra.desc_antiguedad)}</span></div>
-                            <div class="line"><span>Desc.Serv:</span> <span style="float:right; font-size:0.75em;">${obra.desc_servicios_text || ''} -${fmt.format(obra.desc_servicios)}</span></div>
-                            <div class="line"><span>Tasa Neta:</span> <span style="float:right; font-size:0.75em;"><strong>${fmt.format(obra.tasa_neta)}</strong></span></div>
-                            <div class="line"><span>Carpeta:</span> <span style="float:right; font-size:0.75em;"><strong>${fmt.format(obra.carpeta)}</strong></span></div>
+                        <div style="font-size: 0.85em;">
+                            <div class="line"><span>Monto Obra:</span> <span style="float:right; font-size:0.95em;">${fmt.format(obra.monto_obra)}</span></div>
+                            <div class="line"><span>Tasa Base:</span> <span style="float:right; font-size:0.95em;">${fmt.format(obra.tasa_base)}</span></div>
+                            <div class="line"><span>Desc.Antig:</span> <span style="float:right; font-size:0.95em;">${obra.desc_antiguedad_text || ''} -${fmt.format(obra.desc_antiguedad)}</span></div>
+                            <div class="line"><span>Desc.Serv:</span> <span style="float:right; font-size:0.95em;">${obra.desc_servicios_text || ''} -${fmt.format(obra.desc_servicios)}</span></div>
+                            <div class="line"><span>Tasa Neta:</span> <span style="float:right; font-size:0.95em;"><strong>${fmt.format(obra.tasa_neta)}</strong></span></div>
                         </div>
                         
                         <hr style="margin: 0.1cm 0; border: none; border-top: 0.5px solid #ddd;">
-                        <div style="background: #e8f5e9; padding: 0.15cm; text-align: right; font-weight: bold; font-size: 0.75em;">
+                        <div style="background: #e8f5e9; padding: 0.15cm; text-align: right; font-weight: bold; font-size: 0.9em;">
                             TOTAL: ${fmt.format(obra.total)}
                         </div>
                     </div>`;
@@ -635,6 +636,16 @@
                     <div style="height: 100%; background: white; opacity: 0.3;"></div>
                     <div style="text-align: right;">
                         <h2 style="margin: 0; color: white; font-size: 0.95em;">TOTAL GENERAL A LIQUIDAR</h2>
+                        <div style="font-size: 0.75em; margin-top: 0.15cm; border-bottom: 1px solid rgba(255,255,255,0.4); padding-bottom: 0.1cm;">
+                            <div style="display: flex; justify-content: space-between; margin: 0.05cm 0;">
+                                <span>Suma Obras:</span>
+                                <span>${fmt.format(totalObras)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin: 0.05cm 0;">
+                                <span>Carpeta:</span>
+                                <span>${fmt.format(config.carpeta)}</span>
+                            </div>
+                        </div>
                         <div style="font-size: 1.5em; font-weight: bold; margin-top: 0.2cm;">
                             ${fmt.format(totalGral)}
                         </div>
