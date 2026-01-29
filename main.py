@@ -6,7 +6,7 @@ import os
 
 app = FastAPI()
 
-api = APIRouter(prefix="/tasa_obra_calc/api")
+
 
 
 
@@ -87,21 +87,21 @@ init_db()
 
 # --- RUTAS DE API ---
 
-@api.get("/config")
+@ap.get("/api/config")
 def get_config():
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
         row = conn.execute("SELECT arancel, modulo, carpeta FROM configuracion WHERE id = 1").fetchone()
         return dict(row)
 
-@api.post("/config")
+@app.post("/api/config")
 def update_config(config: ConfigObra):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute("UPDATE configuracion SET arancel = ?, modulo = ?, carpeta = ? WHERE id = 1", 
                      (config.arancel, config.modulo, config.carpeta))
         return {"status": "ok"}
 
-@api.post("/login")
+@app.post("/login")
 async def login(request: Request):
     data = await request.json()
     with sqlite3.connect(DB_PATH) as conn:
@@ -110,7 +110,7 @@ async def login(request: Request):
             return {"auth": True}
         raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
-@api.post("/change-password")
+@app.post("/change-password")
 def change_password(data: ChangePass):
     with sqlite3.connect(DB_PATH) as conn:
         row = conn.execute("SELECT password FROM seguridad WHERE id = 1").fetchone()
@@ -122,7 +122,7 @@ def change_password(data: ChangePass):
 
 # --- ENDPOINTS PARA OBRAS MÚLTIPLES ---
 
-@api.post("/obras")
+@app.post("/api/obras")
 def agregar_obra(obra: ObraConstructiva):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
@@ -136,7 +136,7 @@ def agregar_obra(obra: ObraConstructiva):
         conn.commit()
         return {"status": "ok", "message": "Obra agregada"}
 
-@api.get("/obras")
+@app.get("/api/obras")
 def obtener_obras():
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
@@ -145,21 +145,21 @@ def obtener_obras():
                              carpeta, total FROM obras ORDER BY id DESC""").fetchall()
         return [dict(row) for row in rows]
 
-@api.delete("/obras/{obra_id}")
+@app.delete("/api/obras/{obra_id}")
 def eliminar_obra(obra_id: int):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute("DELETE FROM obras WHERE id = ?", (obra_id,))
         conn.commit()
         return {"status": "ok", "message": "Obra eliminada"}
 
-@api.get("/obras/total")
+@app.get("/api/obras/total")
 def obtener_total_obras():
     with sqlite3.connect(DB_PATH) as conn:
         row = conn.execute("SELECT SUM(total) as total FROM obras").fetchone()
         total = row[0] if row[0] else 0
         return {"total": total}
 
-app.include_router(api)
+
 
 # --- SERVIR FRONTEND ---
 # Esto sirve todo lo que esté en la carpeta /static
