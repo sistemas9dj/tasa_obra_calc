@@ -4,7 +4,8 @@ from pydantic import BaseModel
 import sqlite3
 import os
 
-app = FastAPI(root_path="tasa_obra_calc")
+app = FastAPI(root_path="/tasa_obra_calc")
+
 
 
 
@@ -37,7 +38,7 @@ class ObraConstructiva(BaseModel):
 
 
 
-DB_PATH = "/srv/apps/tasa_obra_calc/obras.db"
+DB_PATH = "obras.db"
 
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
