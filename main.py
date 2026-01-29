@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import sqlite3
 import os
 
-app = FastAPI(root_path="tasa_obra_calc")
+app = FastAPI()
 
 
 # Modelos de datos
