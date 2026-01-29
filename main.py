@@ -31,7 +31,7 @@ class ObraConstructiva(BaseModel):
     total: float
 
 # --- BASE DE DATOS ---
-DB_PATH = "tasa_obra_calc/obras.db"
+DB_PATH = "obras.db"
 
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
