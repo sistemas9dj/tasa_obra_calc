@@ -37,6 +37,12 @@ class ObraConstructiva(BaseModel):
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "obras.db")
 
+print("📂 BASE_DIR:", BASE_DIR)
+print("🗄️ DB_PATH:", DB_PATH)
+print("📁 DB EXISTS:", os.path.exists(DB_PATH))
+print("🔐 DB WRITE OK:", os.access(BASE_DIR, os.W_OK))
+print("🔐 DB READ OK:", os.access(DB_PATH, os.R_OK) if os.path.exists(DB_PATH) else "NO DB")
+
 
 #DB_PATH = "obras.db"
 
