@@ -82,7 +82,12 @@ def init_db():
         conn.execute("INSERT OR IGNORE INTO seguridad (id, password) VALUES (1, '9dejulio')")
         conn.commit()
 
-init_db()
+@app.on_event("startup")
+def startup():
+    print("🚀 Startup ejecutado")
+    print("DB_PATH:", DB_PATH)
+    init_db()
+
 
 # --- RUTAS DE API ---
 
