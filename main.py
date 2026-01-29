@@ -37,12 +37,6 @@ class ObraConstructiva(BaseModel):
 
 DB_PATH = "/srv/apps/tasa_obra_calc/obras.db"
 
-@app.startup("startup")
-def startup():
-    print("🚀 Startup ejecutado")
-    print("DB_PATH:", DB_PATH)
-    init_db()
-
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
         # Tabla de configuración económica
@@ -85,7 +79,7 @@ def init_db():
         conn.execute("INSERT OR IGNORE INTO seguridad (id, password) VALUES (1, '9dejulio')")
         conn.commit()
 
-
+init_db()
 
 
 # --- RUTAS DE API ---
