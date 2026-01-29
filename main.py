@@ -79,7 +79,7 @@ def init_db():
         conn.execute("INSERT OR IGNORE INTO seguridad (id, password) VALUES (1, '9dejulio')")
         conn.commit()
 
-@app.on_event("startup")
+@app.lifespan("startup")
 def startup():
     print("🚀 Startup ejecutado")
     print("DB_PATH:", DB_PATH)
