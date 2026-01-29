@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import sqlite3
 import os
 
-app = FastAPI(root_path="/tasa_obra_calc")
+app = FastAPI(root_path="tasa_obra_calc")
 
 
 
@@ -34,7 +34,11 @@ class ObraConstructiva(BaseModel):
     total: float
 
 # --- BASE DE DATOS ---
-DB_PATH = "obras.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "obras.db")
+
+
+#DB_PATH = "obras.db"
 
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
@@ -156,4 +160,8 @@ def obtener_total_obras():
 
 # --- SERVIR FRONTEND ---
 # Esto sirve todo lo que esté en la carpeta /static
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount(
+    "/",
+    StaticFiles(directory="static", html=True),
+    name="static"
+)
