@@ -37,7 +37,7 @@ class ObraConstructiva(BaseModel):
 
 DB_PATH = "/srv/apps/tasa_obra_calc/obras.db"
 
-@app.lifespan("startup")
+@app.startup("startup")
 def startup():
     print("🚀 Startup ejecutado")
     print("DB_PATH:", DB_PATH)
