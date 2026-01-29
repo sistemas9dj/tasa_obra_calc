@@ -84,7 +84,7 @@ init_db()
 
 # --- RUTAS DE API ---
 
-@app.get("tasa_obra_calc/api/config")
+@app.get("/api/config")
 def get_config():
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
