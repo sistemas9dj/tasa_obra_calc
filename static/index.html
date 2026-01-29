@@ -352,7 +352,7 @@
 
     async function cargarConfig() {
         try {
-            const response = await fetch('/api/config');
+            const response = await fetch('tasa_obra_calc/api/config');
             config = await response.json();
             document.getElementById('configArancel').value = config.arancel;
             document.getElementById('configModulo').value = config.modulo;
