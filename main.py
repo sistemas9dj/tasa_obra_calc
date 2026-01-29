@@ -38,7 +38,7 @@ class ObraConstructiva(BaseModel):
 
 
 
-DB_PATH = "/obras.db"
+DB_PATH = "/srv/apps/tasa_obra_calc/obras.db"
 
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
