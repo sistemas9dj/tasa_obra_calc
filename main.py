@@ -1,11 +1,10 @@
-from fastapi import FastAPI, HTTPException, Request, APIRouter
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import sqlite3
 import os
 
-app = FastAPI()
-
+app = FastAPI(root_path="tasa_obra_calc")
 
 
 
@@ -38,7 +37,7 @@ class ObraConstructiva(BaseModel):
 
 
 
-DB_PATH = "/srv/apps/tasa_obra_calc/obras.db"
+DB_PATH = "obras.db"
 
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
@@ -84,10 +83,9 @@ def init_db():
 
 init_db()
 
-
 # --- RUTAS DE API ---
 
-@ap.get("/api/config")
+@app.get("/api/config")
 def get_config():
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
@@ -101,7 +99,7 @@ def update_config(config: ConfigObra):
                      (config.arancel, config.modulo, config.carpeta))
         return {"status": "ok"}
 
-@app.post("/login")
+@app.post("/api/login")
 async def login(request: Request):
     data = await request.json()
     with sqlite3.connect(DB_PATH) as conn:
@@ -110,7 +108,7 @@ async def login(request: Request):
             return {"auth": True}
         raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
-@app.post("/change-password")
+@app.post("/api/change-password")
 def change_password(data: ChangePass):
     with sqlite3.connect(DB_PATH) as conn:
         row = conn.execute("SELECT password FROM seguridad WHERE id = 1").fetchone()
@@ -158,8 +156,6 @@ def obtener_total_obras():
         row = conn.execute("SELECT SUM(total) as total FROM obras").fetchone()
         total = row[0] if row[0] else 0
         return {"total": total}
-
-
 
 # --- SERVIR FRONTEND ---
 # Esto sirve todo lo que esté en la carpeta /static

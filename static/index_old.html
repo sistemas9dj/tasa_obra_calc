@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    
+    <base href="/tasa_obra_calc/">
+
     <meta charset="UTF-8">
     <title>Calculador Municipal - 9 de Julio</title>
     <link rel="icon" type="image/png" href="favicon.png">
@@ -543,7 +544,7 @@
             let html = `
             <div class="report-header" style="display: grid; grid-template-columns: auto 1fr; gap: 1cm; align-items: center; grid-column: 1 / -1; margin-bottom: 0.5cm;">
                 <div style="text-align: center;">
-                    <img src="/images/logo.jpg" alt="Logo" style="max-width: 120px; max-height: 120px;">
+                    <img src="images/logo.jpg" alt="Logo" style="max-width: 120px; max-height: 120px;">
                 </div>
                 <div style="text-align: right;">
                     <h2 style="margin:0; font-size:1.1em;">MUNICIPALIDAD DE 9 DE JULIO</h2>
@@ -616,9 +617,9 @@
                         </div>
                     </div>`;
                 });
-
+                
                 html += `</div>`;
-
+                
                 html += `
                 <div class="total-general" style="margin-top: 0.5cm; border: 2px solid var(--primary); padding: 0.4cm; background: var(--primary); color: white; display: grid; grid-template-columns: auto 2px 1fr 2px auto; gap: 0.5cm; align-items: center;">
                     <div style="text-align: left; font-size: 0.7em;">
@@ -639,7 +640,7 @@
                         <h2 style="margin: 0; color: white; font-size: 0.95em;">TOTAL GENERAL A LIQUIDAR</h2>
                         <div style="font-size: 0.75em; margin-top: 0.15cm; border-bottom: 1px solid rgba(255,255,255,0.4); padding-bottom: 0.1cm;">
                             <div style="display: flex; justify-content: space-between; margin: 0.05cm 0;">
-                                <span>Suma Obras:</span>
+                                <span>Suma Items:</span>
                                 <span>${fmt.format(totalObras)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin: 0.05cm 0;">
