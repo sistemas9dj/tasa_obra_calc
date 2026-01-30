@@ -7,6 +7,8 @@ import os
 app = FastAPI(root_path="tasa_obra_calc")
 
 
+
+
 # Modelos de datos
 class ConfigObra(BaseModel):
     arancel: float
@@ -35,7 +37,7 @@ class ObraConstructiva(BaseModel):
 
 
 
-DB_PATH = "/srv/apps/tasa_obra_calc/obras.db"
+DB_PATH = "obras.db"
 
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
@@ -80,7 +82,6 @@ def init_db():
         conn.commit()
 
 init_db()
-
 
 # --- RUTAS DE API ---
 
